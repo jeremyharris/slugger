@@ -86,7 +86,8 @@ this, change your connection to:
 ## License
 
 Licensed under The MIT License
-[http://www.opensource.org/licenses/mit-license.php][http://www.opensource.org/licenses/mit-license.php]
+[http://www.opensource.org/licenses/mit-license.php][2]
 Redistributions of files must retain the above copyright notice.
 
 [1]: http://mark-story.com/posts/view/using-custom-route-classes-in-cakephp
+[2]: http://www.opensource.org/licenses/mit-license.php
