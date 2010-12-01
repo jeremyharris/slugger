@@ -19,7 +19,6 @@
  *
  * @package       slugger
  * @subpackage    slugger.libs.routes
- * @todo benchmark the caching, maybe change it to use a faster cache if slow
  * @link http://mark-story.com/posts/view/using-custom-route-classes-in-cakephp
  */
 class SluggableRoute extends CakeRoute {
@@ -44,7 +43,7 @@ class SluggableRoute extends CakeRoute {
 					$slugField = null;
 				}
 				$slugSet = $this->getSlugs($checkNamed, $slugField);
-				if ($slugSet === false) {
+				if (empty($slugSet)) {
 					continue;
 				}
 				$slugSet = array_flip($slugSet);
@@ -76,12 +75,12 @@ class SluggableRoute extends CakeRoute {
 				if (is_numeric($checkNamed)) {
 					$checkNamed = $slugField;
 					$slugField = null;
-				}
+				}				
 				if (isset($url[$checkNamed])) {
 					$slugSet = $this->getSlugs($checkNamed, $slugField);
-					if ($slugSet === false) {
+					if (empty($slugSet)) {
 						continue;
-					}					
+					}
 					if (isset($slugSet[$url[$checkNamed]])) {
 						$url[] = $slugSet[$url[$checkNamed]];
 						unset($url[$checkNamed]);
@@ -96,15 +95,13 @@ class SluggableRoute extends CakeRoute {
 /**
  * Slugs a string for the purpose of this route
  *
- * @param integer $id The key for the set
- * @param array $set The set
+ * @param array $slug The slug array (containing keys '_field' and '_count')
  * @return string
  */
-	function slug($id, $set) {
-		$str = $set[$id];
-		$counts = array_count_values($set);
-		if ($counts[$str] > 1 || (isset($this->options['prependPk']) && $this->options['prependPk'])) {
-			$str = $id.' '.$str;
+	function slug($slug) {
+		$str = $slug['_field'];
+		if ($slug['_count'] > 1 || (isset($this->options['prependPk']) && $this->options['prependPk'])) {
+			$str = $slug['_pk'].' '.$str;
 		}
 		return $this->_slug($str);
 	}
@@ -112,18 +109,32 @@ class SluggableRoute extends CakeRoute {
 /**
  * Slugs a string
  *
+ * Defaults to Inflector::slug() if it can't do it faster
+ *
  * @param string $str The string to slug
+ * @param string $str Replacement character
  * @return string
  */
-	function _slug($str) {
-		return strtolower(Inflector::slug($str, '-'));
+	function _slug($str, $replacement = '-') {
+		if (function_exists('iconv')) {
+			$str = preg_replace('/[^a-z0-9 ]/i', '', iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $str));
+			$quotedReplacement = preg_quote($replacement, '/');
+			$merge = array(
+				'/[^\s\p{Ll}\p{Lm}\p{Lo}\p{Lt}\p{Lu}\p{Nd}]/mu' => ' ',
+				'/\\s+/' => $replacement,
+				sprintf('/^[%s]+|[%s]+$/', $quotedReplacement, $quotedReplacement) => '',
+			);
+			return strtolower(preg_replace(array_keys($merge), array_values($merge), $str));
+		}
+		return strtolower(Inflector::slug($str, $replacement));
 	}
 
 /**
- * Gets slugs from cache
+ * Gets slugs from cache and store in variable for this request
  *
- * @param Model $Model
- * @return mixed False if the model fails to initialize, slug set array on success
+ * @param string $modelName The name of the model
+ * @param string $field The field to pull
+ * @return array Array of slugs
  */
 	function getSlugs($modelName, $field = null) {
 		$cache = Cache::getInstance();
@@ -133,38 +144,49 @@ class SluggableRoute extends CakeRoute {
 			'duration' => '+1 days',
 			'prefix' => 'slugger_',
 		));
-
-		$slugs = Cache::read($modelName.'_slugs', 'Slugger.short');
-		if (empty($slugs)) {
+		if (!isset($this->{$modelName.'_slugs'})) {
+			$this->{$modelName.'_slugs'} = Cache::read($modelName.'_slugs', 'Slugger.short');
+		}
+		if (empty($this->{$modelName.'_slugs'})) {
 			$Model = ClassRegistry::init($modelName);
 			if ($Model === false) {
 				return false;
 			}
-
 			if (!$field) {
 				$field = $Model->displayField;
 			}
-			$results = $Model->find('list', array(
+			$start = microtime(true);
+			$slugs = $Model->find('list', array(
 				'fields' => array(
 					$Model->name.'.'.$Model->primaryKey,
 					$Model->name.'.'.$field,
 				),
 				'recursive' => -1
 			));
-			if (empty($results)) {
-				return array();
-			}
-			
-			$results = Set::filter($results);
-			$slugs = array_map(array($this, '_slug'), $results);
-			foreach ($slugs as $key => &$slug) {
-				$slug = $this->slug($key, $results);
+			$counts = $Model->find('all', array(
+				'fields' => array(					
+					$Model->name.'.'.$field,
+					'COUNT(*) AS count'
+				),
+				'group' => array(
+					$Model->name.'.'.$field
+				)
+			));
+			$counts = Set::combine($counts, '{n}.'.$Model->name.'.'.$field, '{n}.0.count');
+			foreach ($slugs as $pk => $field) {
+				$values = array(
+					'_field' => $field,
+					'_count' => $counts[$field],
+					'_pk' => $pk
+				);
+				$slugs[$pk] = $this->slug($values);
 			}
 			Cache::write($modelName.'_slugs', $slugs, 'Slugger.short');
-		}		
+			$this->{$modelName.'_slugs'} = $slugs;
+		}
 		
 		Cache::config($originalCacheConfig);
-		return $slugs;
+		return $this->{$modelName.'_slugs'};
 	}
 }
 

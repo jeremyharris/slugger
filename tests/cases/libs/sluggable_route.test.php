@@ -72,7 +72,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 	function testGetSlugs() {
 		$SluggableRoute = new SluggableRoute(null, null, null);
 
-		$results = $SluggableRoute->getSlugs($this->RouteTest);
+		$results = $SluggableRoute->getSlugs($this->RouteTest->alias);
 		$expected = array(
 			1 => 'a-page-title',
 			2 => 'another-title',
@@ -80,7 +80,8 @@ class SluggableRouteTestCase extends CakeTestCase {
 		);
 		$this->assertEqual($results, $expected);
 
-		$results = $SluggableRoute->getSlugs($this->RouteTest, 'name');
+		unset($SluggableRoute->RouteTest_slugs);
+		$results = $SluggableRoute->getSlugs($this->RouteTest->alias, 'name');
 		$expected = array(
 			1 => 'page-title',
 			2 => 'routing-is-fun',
@@ -91,29 +92,43 @@ class SluggableRouteTestCase extends CakeTestCase {
 
 	function testSlug() {
 		$SluggableRoute = new SluggableRoute(null, null, null);
-		$set = array(
-			1 => 'page-title',
-			2 => 'routing-is-fun',
-			3 => 'cake-rocks',
+		
+		$slug = array(
+			'_pk' => 1,
+			'_field' => 'Page Title',
+			'_count' => 1,
 		);
-
-		$result = $SluggableRoute->slug(1, $set);
+		$result = $SluggableRoute->slug($slug);
 		$expected = 'page-title';
 		$this->assertEqual($result, $expected);
 
-		$result = $SluggableRoute->slug(2, $set);
+		$slug = array(
+			'_pk' => 1,
+			'_field' => 'Routing is fun!',
+			'_count' => 1,
+		);
+		$result = $SluggableRoute->slug($slug);
 		$expected = 'routing-is-fun';
 		$this->assertEqual($result, $expected);
 
 		// check for duplicates
-		$set = array(
-			1 => 'page-title',
-			2 => 'routing-is-fun',
-			3 => 'cake-rocks',
-			4 => 'page-title',
+		$slug = array(
+			'_pk' => 1,
+			'_field' => 'Page Title',
+			'_count' => 3,
 		);
-		$result = $SluggableRoute->slug(1, $set);
+		$result = $SluggableRoute->slug($slug);
 		$expected = '1-page-title';
+		$this->assertEqual($result, $expected);
+
+		// check non-ascii chars
+		$slug = array(
+			'_pk' => 1,
+			'_field' => 'ñice Pagé!',
+			'_count' => 3,
+		);
+		$result = $SluggableRoute->slug($slug);
+		$expected = '1-nice-page';
 		$this->assertEqual($result, $expected);
 	}
 
