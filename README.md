@@ -57,6 +57,22 @@ this, change your connection to:
         )
     );
 
+## Caching
+
+Slugger caches by default. When you update records that the Sluggable route uses,
+you'll need to remove the cache. For example, updating a User's username
+
+    $this->User->id = 3;
+    $this->User->saveField('username', 'newUsername');
+    $Route = new SluggableRoute('/', array(), array('models' => array('User')));
+    $success = $Route->invalidateCache('User', $this->User->id);
+
+Invalidating after saves and deletions is a good idea. You can also remove all
+of the cache for an entire model like so:
+
+    $Route = new SluggableRoute('/', array(), array('models' => array('User')));
+    $success = $Route->invalidateCache('User');
+
 ## Notes and Features
 
 * More than one model can be passed via the `models` param in the route
@@ -91,3 +107,7 @@ Redistributions of files must retain the above copyright notice.
 
 [1]: http://mark-story.com/posts/view/using-custom-route-classes-in-cakephp
 [2]: http://www.opensource.org/licenses/mit-license.php
+
+## Authors
+
+* Pierre Martin (real34) - Cache invalidation
