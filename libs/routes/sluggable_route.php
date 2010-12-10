@@ -193,6 +193,78 @@ class SluggableRoute extends CakeRoute {
 	}
 
 /**
+ * Invalidate cached slugs for a given model or entry
+ *
+ * @param string $modelName Name of the model to invalidate cache for
+ * @param string $id If of the only entry to update
+ * @return boolean True if the value was succesfully deleted, false if it didn't exist or couldn't be removed
+ * @access public
+ */
+	function invalidateCache($modelName, $id = null) {
+		$cacheConfig = $this->_initSluggerCache();
+
+		if (is_null($id)) {
+			$result = Cache::delete($modelName.'_slugs', $cacheConfig);
+		} else {
+			$slugs = Cache::read($modelName.'_slugs', $cacheConfig);
+			if ($slugs === false) {
+				$result = false;
+			} else {
+				$slugs[$id] = $this->_generateSlug($modelName, $id);
+				if ($slugs[$id] === false) {
+					unset($slugs[$id]);
+				}
+				$result = Cache::write($modelName.'_slugs', $slugs, $cacheConfig);
+			}
+		}
+
+		$this->_restoreOriginalCache();
+		return $result;
+	}
+
+/**
+ * Generates a slug for a given model and id from the database
+ *
+ * @param string $modelName The name of the model
+ * @param string $id Id of the entry to generate a slug for
+ * @return mixed False if the config is not found for this model or the entry
+ *	does not exist. The generated slug otherwise
+ * @access protected
+ */
+	function _generateSlug($modelName, $id) {
+		$slug = false;
+
+		if (isset($this->options['models'])) {
+			if (array_key_exists($modelName, $this->options['models'])) {
+				$slugField = $this->options['models'][$modelName];
+			} elseif (array_search($modelName, $this->options['models']) !== false) {
+				$slugField = false;
+			}
+
+			if (isset($slugField)) {
+				$Model = ClassRegistry::init($modelName);
+				if ($Model !== false) {
+					if (!$slugField) {
+						$slugField = $Model->displayField;
+					}
+					$text = $Model->field($slugField, array(
+						$Model->name.'.'.$Model->primaryKey => $id
+					));
+					if ($text !== false) {
+						$count = $Model->find('count', array(
+							'conditions' => array($Model->name.'.'.$slugField => $text)
+						));
+						$values = array('_field' => $text, '_count' => $count, '_pk' => $id);
+						$slug = $this->slug($values);
+					}
+				}
+			}
+		}
+
+		return $slug;
+	}
+
+/**
  * Modifies the Cache configuration to use a specific caching type
  * 
  * @return string New cache config name
