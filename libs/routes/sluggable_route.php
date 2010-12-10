@@ -205,6 +205,7 @@ class SluggableRoute extends CakeRoute {
 
 		if (is_null($id)) {
 			$result = Cache::delete($modelName.'_slugs', $cacheConfig);
+			unset($this->{$modelName.'_slugs'});
 		} else {
 			$slugs = Cache::read($modelName.'_slugs', $cacheConfig);
 			if ($slugs === false) {
@@ -213,6 +214,9 @@ class SluggableRoute extends CakeRoute {
 				$slugs[$id] = $this->_generateSlug($modelName, $id);
 				if ($slugs[$id] === false) {
 					unset($slugs[$id]);
+				}
+				if (isset($this->{$modelName.'_slugs'}) && $slugs[$id] !== false) {
+					$this->{$modelName.'_slugs'}[$id] = $slugs[$id];
 				}
 				$result = Cache::write($modelName.'_slugs', $slugs, $cacheConfig);
 			}

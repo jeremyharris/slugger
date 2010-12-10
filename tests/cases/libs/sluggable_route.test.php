@@ -7,6 +7,8 @@ class SluggableRouteTestCase extends CakeTestCase {
 	var $fixtures = array('plugin.slugger.route_test', 'plugin.slugger.route_two_test');
 
 	function startTest() {
+		$this->_cacheDisable = Configure::read('Cache.disable');
+		Configure::write('Cache.disable', false);
 		$router = Router::getInstance();
 		$this->_oldRoutes = $router->routes;
 		Router::reload();
@@ -21,11 +23,69 @@ class SluggableRouteTestCase extends CakeTestCase {
 	}
 
 	function endTest() {
+		Cache::clear(false, 'Slugger.short');
+		Configure::write('Cache.disable', $this->_cacheDisable);
 		Router::reload();
 		$router = Router::getInstance();
 		$router->routes = $this->_oldRoutes;
 		unset($this->RouteTest);
 		ClassRegistry::flush();
+	}
+	
+	function testGenerateSlug() {
+		$Sluggable = new SluggableRoute('/', array(), array('models' => array('RouteTest')));
+		
+		$this->assertFalse($Sluggable->_generateSlug('RouteTest', 100));
+		
+		$results = $Sluggable->_generateSlug('RouteTest', 1);
+		$this->assertEqual($results, 'a-page-title');
+
+		$this->RouteTest->save(array('RouteTest' => array('title' => 'A page title')));
+		$results = $Sluggable->_generateSlug('RouteTest', 1);
+		$this->assertEqual($results, '1-a-page-title');
+		$results = $Sluggable->_generateSlug('RouteTest', 4);
+		$this->assertEqual($results, '4-a-page-title');
+	}
+
+	function testInvalidateCache() {
+		$Sluggable = new SluggableRoute('/', array(), array('models' => array('RouteTest')));
+
+		$Sluggable->getSlugs('RouteTest');
+		$varCache = $Sluggable->RouteTest_slugs;
+		$this->assertIsA($varCache, 'array');
+		$cached = Cache::read('RouteTest_slugs', 'Slugger.short');
+		$this->assertIsA($cached, 'array');
+
+		$Sluggable->invalidateCache('RouteTest');
+		$this->assertFalse(isset($Sluggable->RouteTest_slugs));
+		$this->assertFalse(Cache::read('RouteTest_slugs', 'Slugger.short'));
+
+		$Sluggable->getSlugs('RouteTest');
+		$this->RouteTest->id = 1;
+		$this->RouteTest->saveField('title', 'A different name!');
+		$Sluggable->invalidateCache('RouteTest', 1);
+
+		$result = $Sluggable->RouteTest_slugs;
+		$expected = array(
+			1 => 'a-different-name',
+			2 => 'another-title',
+			3 => 'i-love-cakephp',
+		);
+		$this->assertEqual($result, $expected);
+
+		$result = Cache::read('RouteTest_slugs', 'Slugger.short');
+		$expected = array(
+			1 => 'a-different-name',
+			2 => 'another-title',
+			3 => 'i-love-cakephp',
+		);
+		$this->assertEqual($result, $expected);
+
+		$Sluggable->invalidateCache('RouteTest');
+		$Sluggable->invalidateCache('RouteTest', 2);
+		
+		$this->assertFalse(isset($Sluggable->RouteTest_slugs));
+		$this->assertFalse(Cache::read('RouteTest_slugs', 'Slugger.short'));
 	}
 
 	function testEmptyTable() {
@@ -81,6 +141,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 		$this->assertEqual($results, $expected);
 
 		unset($SluggableRoute->RouteTest_slugs);
+		Cache::clear(false, 'Slugger.short');
 		$results = $SluggableRoute->getSlugs($this->RouteTest->alias, 'name');
 		$expected = array(
 			1 => 'page-title',
