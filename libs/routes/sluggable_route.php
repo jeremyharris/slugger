@@ -23,6 +23,14 @@
  */
 class SluggableRoute extends CakeRoute {
 
+/**
+ * Internal attribute used to store the original cache config between
+ * _initSluggerCache and _restoreOriginalCache
+ * 
+ * @access private
+ */
+	var $__originalCacheConfig = null;
+
 /*
  * Override the parsing function to find an id based on a slug
  *
@@ -137,15 +145,10 @@ class SluggableRoute extends CakeRoute {
  * @return array Array of slugs
  */
 	function getSlugs($modelName, $field = null) {
-		$cache = Cache::getInstance();
-		$originalCacheConfig = $cache->__name;
-		Cache::config('Slugger.short', array(
-			'engine' => 'File',
-			'duration' => '+1 days',
-			'prefix' => 'slugger_',
-		));
+		$cacheConfig = $this->_initSluggerCache();
+
 		if (!isset($this->{$modelName.'_slugs'})) {
-			$this->{$modelName.'_slugs'} = Cache::read($modelName.'_slugs', 'Slugger.short');
+			$this->{$modelName.'_slugs'} = Cache::read($modelName.'_slugs', $cacheConfig);
 		}
 		if (empty($this->{$modelName.'_slugs'})) {
 			$Model = ClassRegistry::init($modelName);
@@ -181,13 +184,46 @@ class SluggableRoute extends CakeRoute {
 				);
 				$slugs[$pk] = $this->slug($values);
 			}
-			Cache::write($modelName.'_slugs', $slugs, 'Slugger.short');
+			Cache::write($modelName.'_slugs', $slugs, $cacheConfig);
 			$this->{$modelName.'_slugs'} = $slugs;
 		}
 		
-		Cache::config($originalCacheConfig);
+		$this->_restoreOriginalCache();
 		return $this->{$modelName.'_slugs'};
 	}
+
+/**
+ * Modifies the Cache configuration to use a specific caching type
+ * 
+ * @return string New cache config name
+ * @access protected
+ */
+	function _initSluggerCache() {
+		$cache = Cache::getInstance();
+		$this->__originalCacheConfig = $cache->__name;
+		Cache::config('Slugger.short', array(
+			'engine' => 'File',
+			'duration' => '+1 days',
+			'prefix' => 'slugger_'
+		));
+		return 'Slugger.short';
+	}
+
+/**
+ * Restore the original Cache configuration
+ *
+ * @return boolean Success of the restoration
+ * @access protected
+ */
+	function _restoreOriginalCache() {
+		$success = false;
+		if (!empty($this->__originalCacheConfig)) {
+			$success = Cache::config($this->__originalCacheConfig) !== false;
+			$this->__originalCacheConfig = null;
+		}
+		return $success;
+	}
+
 }
 
 ?>
