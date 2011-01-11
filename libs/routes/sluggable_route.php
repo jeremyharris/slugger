@@ -158,7 +158,6 @@ class SluggableRoute extends CakeRoute {
 			if (!$field) {
 				$field = $Model->displayField;
 			}
-			$start = microtime(true);
 			$slugs = $Model->find('list', array(
 				'fields' => array(
 					$Model->name.'.'.$Model->primaryKey,
