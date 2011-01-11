@@ -126,7 +126,7 @@ class SluggableRoute extends CakeRoute {
  * @return string
  */
 	function _slug($str, $replacement = '-') {
-		if (function_exists('iconv')) {
+		if (isset($this->options['iconv']) && $this->options['iconv'] && function_exists('iconv')) {
 			$str = preg_replace('/[^a-z0-9 ]/i', '', iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $str));
 			$quotedReplacement = preg_quote($replacement, '/');
 			$merge = array(

@@ -57,6 +57,20 @@ this, change your connection to:
         )
     );
 
+Also in the options is the option to set whether or not to use `iconv()`. [iconv][4]
+is a PHP module that encodes strings in a different character set, thereby
+stripping invalid characters. While it's much faster (see benchmark test),
+depending on your setup and locale it may not slug as expected.
+
+    Router::connect('/posts/:action/*',
+        array(),
+        array(
+            'routeClass' => 'SluggableRoute',
+            'models' => array('Post'),
+            'iconv' => true
+        )
+    );
+
 ## Caching
 
 Slugger caches by default. When you update records that the Sluggable route uses,
@@ -108,6 +122,7 @@ Redistributions of files must retain the above copyright notice.
 [1]: http://mark-story.com/posts/view/using-custom-route-classes-in-cakephp
 [2]: http://www.opensource.org/licenses/mit-license.php
 [3]: http://42pixels.com/blog/slugs-ugly-bugs-pretty-urls
+[4]: http://us.php.net/manual/en/function.iconv.php
 
 ## Authors
 

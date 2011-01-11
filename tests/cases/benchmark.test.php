@@ -51,8 +51,8 @@ class BenchmarkTestCase extends CakeTestCase {
 	}
 
 	function testCakeCacheBenefit2() {
-		$records = 10000;
-		$iterations = 100;
+		$records = 100;
+		$iterations = 10000;
 		$this->_insertABillionRecords($records);
 		$speed1 = $this->_iterate($iterations);
 		debug("Routed $records records $iterations times before cache: $speed1 s");
@@ -78,6 +78,18 @@ class BenchmarkTestCase extends CakeTestCase {
 		$speed3 = $this->_iterate($iterations);
 		debug("Routed $records records $iterations times new request, using cache: $speed3 s");
 		debug('Speed increase: '.(round($speed1/$speed3*100)-100).'%');
+	}
+
+	function testCakeCacheBenefit4() {
+		$router = Router::getInstance();
+		$router->routes[0]->options['iconv'] = true;
+
+		$records = 10000;
+		$iterations = 1000;
+		$this->_insertABillionRecords($records);
+		$speed1 = $this->_iterate($iterations);
+		debug("Routed $records records $iterations times before cache using iconv: $speed1 s");
+		$speed2 = $this->_iterate($iterations);
 	}
 
 	function _clearCakeCache() {
