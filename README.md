@@ -1,13 +1,13 @@
 # Slugger
 
-Slugger is a plugin that basically rewrites cake urls (using routing) into 
+[Slugger][3] is a plugin that basically rewrites cake urls (using routing) into
 slugged urls automatically using a named parameter.
 
     '/posts/view/Post:12'
 
 automatically becomes
 
-    '/posts/view/my-post-title
+    '/posts/view/my-post-title'
 
 This avoids the need to store a slug in the db, manage it, check for duplicates,
 etc. It also avoids the `Model::findBySlug()` solution that many people use.
@@ -107,6 +107,7 @@ Redistributions of files must retain the above copyright notice.
 
 [1]: http://mark-story.com/posts/view/using-custom-route-classes-in-cakephp
 [2]: http://www.opensource.org/licenses/mit-license.php
+[3]: http://42pixels.com/blog/slugs-ugly-bugs-pretty-urls
 
 ## Authors
 

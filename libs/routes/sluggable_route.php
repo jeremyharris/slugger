@@ -19,6 +19,7 @@
  *
  * @package       slugger
  * @subpackage    slugger.libs.routes
+ * @link http://42pixels.com/blog/slugs-ugly-bugs-pretty-urls
  * @link http://mark-story.com/posts/view/using-custom-route-classes-in-cakephp
  */
 class SluggableRoute extends CakeRoute {
@@ -26,7 +27,8 @@ class SluggableRoute extends CakeRoute {
 /**
  * Internal attribute used to store the original cache config between
  * _initSluggerCache and _restoreOriginalCache
- * 
+ *
+ * @var string
  * @access private
  */
 	var $__originalCacheConfig = null;
@@ -158,7 +160,7 @@ class SluggableRoute extends CakeRoute {
 			if (!$field) {
 				$field = $Model->displayField;
 			}
-			$slugs = $Model->find('list', array(
+			$slugs = $Model->find('all', array(
 				'fields' => array(
 					$Model->name.'.'.$Model->primaryKey,
 					$Model->name.'.'.$field,
@@ -175,16 +177,17 @@ class SluggableRoute extends CakeRoute {
 				)
 			));
 			$counts = Set::combine($counts, '{n}.'.$Model->name.'.'.$field, '{n}.0.count');
-			foreach ($slugs as $pk => $field) {
+			$listedSlugs = array();
+			foreach ($slugs as $pk => $fields) {
 				$values = array(
-					'_field' => $field,
-					'_count' => $counts[$field],
-					'_pk' => $pk
+					'_field' => $fields[$Model->name][$field],
+					'_count' => $counts[$fields[$Model->name][$field]],
+					'_pk' => $fields[$Model->name][$Model->primaryKey]
 				);
-				$slugs[$pk] = $this->slug($values);
+				$listedSlugs[$fields[$Model->name][$Model->primaryKey]] = $this->slug($values);
 			}
-			Cache::write($modelName.'_slugs', $slugs, $cacheConfig);
-			$this->{$modelName.'_slugs'} = $slugs;
+			Cache::write($modelName.'_slugs', $listedSlugs, $cacheConfig);
+			$this->{$modelName.'_slugs'} = $listedSlugs;
 		}
 		
 		$this->_restoreOriginalCache();
