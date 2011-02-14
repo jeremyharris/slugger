@@ -31,6 +31,31 @@ class SluggableRouteTestCase extends CakeTestCase {
 		unset($this->RouteTest);
 		ClassRegistry::flush();
 	}
+
+	function testGroupingCaseSensitivity() {
+		$this->RouteTest->save(array(
+			'RouteTest' => array(
+				'title' => 'i love cakephp',
+				'name' => 'case sensitive grouping, please!',
+			)
+		));
+
+		$results = Router::url(array(
+			'controller' => 'route_tests',
+			'action' => 'view',
+			'RouteTest' => 4
+		));
+		$expected = '/route_tests/view/4-i-love-cakephp';
+		$this->assertEqual($results, $expected);
+
+		$results = Router::url(array(
+			'controller' => 'route_tests',
+			'action' => 'view',
+			'RouteTest' => 3
+		));
+		$expected = '/route_tests/view/3-i-love-cakephp';
+		$this->assertEqual($results, $expected);
+	}
 	
 	function testGenerateSlug() {
 		$Sluggable = new SluggableRoute('/', array(), array('models' => array('RouteTest')));
