@@ -117,24 +117,16 @@ class SluggableRoute extends CakeRoute {
 	}
 
 /**
- * Slugs a string
- *
- * Defaults to Inflector::slug() if it can't do it faster
+ * Slugs a string using a custom function if defined. If no custom function is
+ * defined, it defaults to a strtolower'd `Inflector::slug($str, '-');`
  *
  * @param string $str The string to slug
  * @param string $str Replacement character
  * @return string
  */
 	function _slug($str, $replacement = '-') {
-		if (isset($this->options['iconv']) && $this->options['iconv'] && function_exists('iconv')) {
-			$str = preg_replace('/[^a-z0-9 ]/i', '', iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $str));
-			$quotedReplacement = preg_quote($replacement, '/');
-			$merge = array(
-				'/[^\s\p{Ll}\p{Lm}\p{Lo}\p{Lt}\p{Lu}\p{Nd}]/mu' => ' ',
-				'/\\s+/' => $replacement,
-				sprintf('/^[%s]+|[%s]+$/', $quotedReplacement, $quotedReplacement) => '',
-			);
-			return strtolower(preg_replace(array_keys($merge), array_values($merge), $str));
+		if (isset($this->options['slugFunction'])) {
+			return call_user_func($this->options['slugFunction'], $str);
 		}
 		return strtolower(Inflector::slug($str, $replacement));
 	}

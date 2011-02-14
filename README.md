@@ -57,19 +57,39 @@ this, change your connection to:
         )
     );
 
-Also in the options is the option to set whether or not to use `iconv()`. [iconv][4]
-is a PHP module that encodes strings in a different character set, thereby
-stripping invalid characters. While it's much faster (see benchmark test),
-depending on your setup and locale it may not slug as expected.
+## Custom slug function
 
+You can define a custom function to use when slugging your urls by setting the
+'slugFunction' key in the route options. This key accepts a php [callback][5]
+and passes one argument, the string to slug. It expects a string to be returned.
+
+For example, to use a custom function:
+
+    function my_custom_iconv_slugger($str) {
+        $str = preg_replace('/[^a-z0-9 ]/i', '', iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $str));
+        $quotedReplacement = preg_quote($replacement, '/');
+        $merge = array(
+            '/[^\s\p{Ll}\p{Lm}\p{Lo}\p{Lt}\p{Lu}\p{Nd}]/mu' => ' ',
+            '/\\s+/' => $replacement,
+            sprintf('/^[%s]+|[%s]+$/', $quotedReplacement, $quotedReplacement) => '',
+        );
+        return strtolower(preg_replace(array_keys($merge), array_values($merge), $str));
+    }
     Router::connect('/posts/:action/*',
         array(),
         array(
             'routeClass' => 'SluggableRoute',
             'models' => array('Post'),
-            'iconv' => true
+            'slugFunction' => 'my_custom_iconv_slugger'
         )
     );
+
+[iconv][4] is a PHP module that encodes strings in a different character set,
+thereby stripping invalid characters. It's much faster but depends on your
+system's setup.
+
+*Note: This functionality replaces the briefly available 'iconv' option. Use
+the iconv example above instead.*
 
 ## Caching
 
@@ -123,6 +143,7 @@ Redistributions of files must retain the above copyright notice.
 [2]: http://www.opensource.org/licenses/mit-license.php
 [3]: http://42pixels.com/blog/slugs-ugly-bugs-pretty-urls
 [4]: http://us.php.net/manual/en/function.iconv.php
+[5]: http://us.php.net/manual/en/language.pseudo-types.php#language.types.callback
 
 ## Authors
 

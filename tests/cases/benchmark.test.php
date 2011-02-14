@@ -80,18 +80,6 @@ class BenchmarkTestCase extends CakeTestCase {
 		debug('Speed increase: '.(round($speed1/$speed3*100)-100).'%');
 	}
 
-	function testCakeCacheBenefit4() {
-		$router = Router::getInstance();
-		$router->routes[0]->options['iconv'] = true;
-
-		$records = 10000;
-		$iterations = 1000;
-		$this->_insertABillionRecords($records);
-		$speed1 = $this->_iterate($iterations);
-		debug("Routed $records records $iterations times before cache using iconv: $speed1 s");
-		$speed2 = $this->_iterate($iterations);
-	}
-
 	function _clearCakeCache() {
 		Cache::config('Slugger.short');
 		Cache::clear(false, 'Slugger.short');

@@ -32,6 +32,58 @@ class SluggableRouteTestCase extends CakeTestCase {
 		ClassRegistry::flush();
 	}
 
+	function testCustomSlugFunction() {
+		Router::reload();
+		Router::connect('/:controller/:action/*',
+			array(),
+			array(
+				'routeClass' => 'SluggableRoute',
+				'models' => array('RouteTest'),
+				'slugFunction' => array('Inflector', 'slug')
+			)
+		);
+
+		$result = Router::url(array(
+			'controller' => 'route_tests',
+			'action' => 'view',
+			'RouteTest' => 1
+		));
+		$expected = '/route_tests/view/A_page_title';
+		$this->assertEqual($result, $expected);
+
+		$result = Router::parse('/route_tests/view/A_page_title');
+		$expected = array(
+			'controller' => 'route_tests',
+			'action' => 'view',
+			'named' => array(
+				'RouteTest' => 1
+			),
+			'plugin' => array(),
+			'pass' => array()
+		);
+		$this->assertEqual($result, $expected);
+
+		$Sluggable = new SluggableRoute('/', array(), array('models' => array('RouteTest')));
+		$Sluggable->invalidateCache('RouteTest');
+		Router::reload();
+		Router::connect('/:controller/:action/*',
+			array(),
+			array(
+				'routeClass' => 'SluggableRoute',
+				'models' => array('RouteTest'),
+				'slugFunction' => create_function('$str', 'return str_replace(" ", "", strtoupper($str));')
+			)
+		);
+
+		$result = Router::url(array(
+			'controller' => 'route_tests',
+			'action' => 'view',
+			'RouteTest' => 3
+		));
+		$expected = '/route_tests/view/ILOVECAKEPHP';
+		$this->assertEqual($result, $expected);
+	}
+
 	function testGroupingCaseSensitivity() {
 		$this->RouteTest->save(array(
 			'RouteTest' => array(
