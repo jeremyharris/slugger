@@ -110,15 +110,15 @@ class SluggableRouteTestCase extends CakeTestCase {
 	function testGenerateSlug() {
 		$Sluggable = new SluggableRoute('/', array(), array('models' => array('RouteTest')));
 		
-		$this->assertFalse($Sluggable->_generateSlug('RouteTest', 100));
+		$this->assertFalse($Sluggable->generateSlug('RouteTest', 100));
 		
-		$results = $Sluggable->_generateSlug('RouteTest', 1);
+		$results = $Sluggable->generateSlug('RouteTest', 1);
 		$this->assertEquals($results, 'a-page-title');
 
 		$this->RouteTest->save(array('RouteTest' => array('title' => 'A page title')));
-		$results = $Sluggable->_generateSlug('RouteTest', 1);
+		$results = $Sluggable->generateSlug('RouteTest', 1);
 		$this->assertEquals($results, '1-a-page-title');
-		$results = $Sluggable->_generateSlug('RouteTest', 4);
+		$results = $Sluggable->generateSlug('RouteTest', 4);
 		$this->assertEquals($results, '4-a-page-title');
 	}
 

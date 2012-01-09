@@ -24,13 +24,13 @@
  */
 class SluggableRoute extends CakeRoute {
 
-/*
+/**
  * Override the parsing function to find an id based on a slug
  *
  * @param string $url Url string
  * @return boolean
  */
-    function parse($url) {
+    public function parse($url) {
 		$params = parent::parse($url);
 
 		if (empty($params)) {
@@ -61,13 +61,13 @@ class SluggableRoute extends CakeRoute {
 		return false;
 	}
 
-/*
+/**
  * Matches the model's id and converts it to a slug
  *
  * @param array $url Cake url array
  * @return boolean
  */
-	function match($url) {
+	public function match($url) {
 		if (isset($this->options['models'])) {
 			foreach ($this->options['models'] as $checkNamed => $slugField) {
 				if (is_numeric($checkNamed)) {
@@ -96,7 +96,7 @@ class SluggableRoute extends CakeRoute {
  * @param array $slug The slug array (containing keys '_field' and '_count')
  * @return string
  */
-	function slug($slug) {
+	public function slug($slug) {
 		$str = $slug['_field'];
 		if ($slug['_count'] > 1 || (isset($this->options['prependPk']) && $this->options['prependPk'])) {
 			$str = $slug['_pk'].' '.$str;
@@ -112,7 +112,7 @@ class SluggableRoute extends CakeRoute {
  * @param string $str Replacement character
  * @return string
  */
-	function _slug($str, $replacement = '-') {
+	protected function _slug($str, $replacement = '-') {
 		if (isset($this->options['slugFunction'])) {
 			return call_user_func($this->options['slugFunction'], $str);
 		}
@@ -126,7 +126,7 @@ class SluggableRoute extends CakeRoute {
  * @param string $field The field to pull
  * @return array Array of slugs
  */
-	function getSlugs($modelName, $field = null) {
+	public function getSlugs($modelName, $field = null) {
 		$cacheConfig = $this->_initSluggerCache();
 		if (!isset($this->{$modelName.'_slugs'})) {
 			$this->{$modelName.'_slugs'} = Cache::read($modelName.'_slugs', $cacheConfig);
@@ -178,9 +178,8 @@ class SluggableRoute extends CakeRoute {
  * @param string $modelName Name of the model to invalidate cache for
  * @param string $id If of the only entry to update
  * @return boolean True if the value was succesfully deleted, false if it didn't exist or couldn't be removed
- * @access public
  */
-	function invalidateCache($modelName, $id = null) {
+	public function invalidateCache($modelName, $id = null) {
 		$cacheConfig = $this->_initSluggerCache();
 
 		if (is_null($id)) {
@@ -191,7 +190,7 @@ class SluggableRoute extends CakeRoute {
 			if ($slugs === false) {
 				$result = false;
 			} else {
-				$slugs[$id] = $this->_generateSlug($modelName, $id);
+				$slugs[$id] = $this->generateSlug($modelName, $id);
 				if ($slugs[$id] === false) {
 					unset($slugs[$id]);
 				}
@@ -212,9 +211,8 @@ class SluggableRoute extends CakeRoute {
  * @param string $id Id of the entry to generate a slug for
  * @return mixed False if the config is not found for this model or the entry
  *	does not exist. The generated slug otherwise
- * @access protected
  */
-	function _generateSlug($modelName, $id) {
+	public function generateSlug($modelName, $id) {
 		$slug = false;
 
 		if (isset($this->options['models'])) {
@@ -251,9 +249,8 @@ class SluggableRoute extends CakeRoute {
  * Sets up cache config and returns config name
  * 
  * @return string Cache config name
- * @access protected
  */
-	function _initSluggerCache() {
+	protected function _initSluggerCache() {
 		Cache::config('Slugger', array(
 			'engine' => 'File',
 			'duration' => '+1 days',
