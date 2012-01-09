@@ -14,6 +14,10 @@ etc. It also avoids the `Model::findBySlug()` solution that many people use.
 Search for your post using the primary key instead! (Initial development sparked
 by [Mark Story's blog][1]).
 
+## Requirements
+
+* CakePHP 2.0.x (check tags for older versions of CakePHP)
+
 ## Usage
 
     App::uses('SluggableRoute', 'Slugger.Lib');
