@@ -4,7 +4,7 @@
  * benchmarking of the route's caching and slugging ability
  */
 
-App::import('Lib', array('Slugger.routes/SluggableRoute'));
+App::uses('SluggableRoute', 'Slugger.Lib');
 
 class BenchmarkTestCase extends CakeTestCase {
 

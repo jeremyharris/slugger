@@ -1,6 +1,6 @@
 <?php
 
-App::import('Lib', array('Slugger.routes/SluggableRoute'));
+App::uses('SluggableRoute', 'Slugger.Lib');
 
 class SluggableRouteTestCase extends CakeTestCase {
 

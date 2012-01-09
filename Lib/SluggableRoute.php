@@ -8,7 +8,7 @@
  * @copyright     Copyright 2010, Jeremy Harris
  * @link          http://42pixels.com
  * @package       slugger
- * @subpackage    slugger.libs.routes
+ * @subpackage    slugger.Lib
  * @license       MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
 
@@ -18,7 +18,7 @@
  * Automatically slugs routes based on named parameters
  *
  * @package       slugger
- * @subpackage    slugger.libs.routes
+ * @subpackage    slugger.Lib
  * @link http://42pixels.com/blog/slugs-ugly-bugs-pretty-urls
  * @link http://mark-story.com/posts/view/using-custom-route-classes-in-cakephp
  */

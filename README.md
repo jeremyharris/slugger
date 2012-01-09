@@ -16,7 +16,7 @@ by [Mark Story's blog][1]).
 
 ## Usage
 
-    App::import('Lib', array('Slugger.routes/SluggableRoute'));
+    App::uses('SluggableRoute', 'Slugger.Lib');
 
     Router::connect(/posts/:action/*,
         array(),
