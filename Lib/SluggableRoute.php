@@ -37,7 +37,7 @@ class SluggableRoute extends CakeRoute {
 			return false;
 		}
 
-		if (isset($this->options['models']) && isset($params['_args_'])) {
+		if (isset($this->options['models']) && !empty($params['pass'])) {
 			foreach ($this->options['models'] as $checkNamed => $slugField) {
 				if (is_numeric($checkNamed)) {
 					$checkNamed = $slugField;
@@ -48,14 +48,12 @@ class SluggableRoute extends CakeRoute {
 					continue;
 				}
 				$slugSet = array_flip($slugSet);
-				$passed = explode('/', $params['_args_']);
-				foreach ($passed as $key => $pass) {
+				foreach ($params['pass'] as $key => $pass) {
 					if (isset($slugSet[$pass])) {
-						unset($passed[$key]);
-						$passed[] = $checkNamed.':'.$slugSet[$pass];
+						unset($params['pass'][$key]);
+						$params['named'][$checkNamed] = $slugSet[$pass];
 					}
 				}
-				$params['_args_'] = implode('/', $passed);
 			}
 			return $params;
 		}
@@ -70,13 +68,12 @@ class SluggableRoute extends CakeRoute {
  * @return boolean
  */
 	function match($url) {
-		// grab id and convert to username (from the user param)
 		if (isset($this->options['models'])) {
 			foreach ($this->options['models'] as $checkNamed => $slugField) {
 				if (is_numeric($checkNamed)) {
 					$checkNamed = $slugField;
 					$slugField = null;
-				}				
+				}
 				if (isset($url[$checkNamed])) {
 					$slugSet = $this->getSlugs($checkNamed, $slugField);
 					if (empty($slugSet)) {
@@ -131,7 +128,6 @@ class SluggableRoute extends CakeRoute {
  */
 	function getSlugs($modelName, $field = null) {
 		$cacheConfig = $this->_initSluggerCache();
-
 		if (!isset($this->{$modelName.'_slugs'})) {
 			$this->{$modelName.'_slugs'} = Cache::read($modelName.'_slugs', $cacheConfig);
 		}
@@ -258,12 +254,12 @@ class SluggableRoute extends CakeRoute {
  * @access protected
  */
 	function _initSluggerCache() {
-		Cache::config('Slugger.short', array(
+		Cache::config('Slugger', array(
 			'engine' => 'File',
 			'duration' => '+1 days',
 			'prefix' => 'slugger_'
 		));
-		return 'Slugger.short';
+		return 'Slugger';
 	}
 }
 

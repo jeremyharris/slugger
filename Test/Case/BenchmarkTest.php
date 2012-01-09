@@ -5,6 +5,7 @@
  */
 
 App::uses('SluggableRoute', 'Slugger.Lib');
+App::uses('Router', 'Routing');
 
 class BenchmarkTestCase extends CakeTestCase {
 
@@ -12,9 +13,6 @@ class BenchmarkTestCase extends CakeTestCase {
 
 	function startTest() {
 		Configure::write('Cache.disable', false);
-		$this->_clearCakeCache();
-		$router = Router::getInstance();
-		$this->_oldRoutes = $router->routes;
 		Router::reload();
 		Router::connect('/:controller/:action/*',
 			array(),
@@ -27,12 +25,13 @@ class BenchmarkTestCase extends CakeTestCase {
 	}
 
 	function endTest() {
-		$this->_clearCakeCache();
+		Cache::clear(false, 'Slugger');
 		Router::reload();
-		$router = Router::getInstance();
-		$router->routes = $this->_oldRoutes;
 		unset($this->RouteTest);
-		ClassRegistry::flush();
+	}
+	
+	function tearDown() {
+		Cache::clear(false, 'Slugger');
 	}
 
 	function testCakeCacheBenefit() {
@@ -80,14 +79,8 @@ class BenchmarkTestCase extends CakeTestCase {
 		debug('Speed increase: '.(round($speed1/$speed3*100)-100).'%');
 	}
 
-	function _clearCakeCache() {
-		Cache::config('Slugger.short');
-		Cache::clear(false, 'Slugger.short');
-	}
-
 	function _clearVarCache() {
-		$router = Router::getInstance();
-		unset($router->routes[0]->RouteTest_slugs);
+		unset(Router::$routes[0]->RouteTest_slugs);
 	}
 
 	function _iterate($count = 1) {
