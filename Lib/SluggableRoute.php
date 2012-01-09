@@ -24,15 +24,6 @@
  */
 class SluggableRoute extends CakeRoute {
 
-/**
- * Internal attribute used to store the original cache config between
- * _initSluggerCache and _restoreOriginalCache
- *
- * @var string
- * @access private
- */
-	var $__originalCacheConfig = null;
-
 /*
  * Override the parsing function to find an id based on a slug
  *
@@ -182,7 +173,6 @@ class SluggableRoute extends CakeRoute {
 			$this->{$modelName.'_slugs'} = $listedSlugs;
 		}
 		
-		$this->_restoreOriginalCache();
 		return $this->{$modelName.'_slugs'};
 	}
 
@@ -216,7 +206,6 @@ class SluggableRoute extends CakeRoute {
 			}
 		}
 
-		$this->_restoreOriginalCache();
 		return $result;
 	}
 
@@ -263,14 +252,12 @@ class SluggableRoute extends CakeRoute {
 	}
 
 /**
- * Modifies the Cache configuration to use a specific caching type
+ * Sets up cache config and returns config name
  * 
- * @return string New cache config name
+ * @return string Cache config name
  * @access protected
  */
 	function _initSluggerCache() {
-		$cache = Cache::getInstance();
-		$this->__originalCacheConfig = $cache->__name;
 		Cache::config('Slugger.short', array(
 			'engine' => 'File',
 			'duration' => '+1 days',
@@ -278,22 +265,6 @@ class SluggableRoute extends CakeRoute {
 		));
 		return 'Slugger.short';
 	}
-
-/**
- * Restore the original Cache configuration
- *
- * @return boolean Success of the restoration
- * @access protected
- */
-	function _restoreOriginalCache() {
-		$success = false;
-		if (!empty($this->__originalCacheConfig)) {
-			$success = Cache::config($this->__originalCacheConfig) !== false;
-			$this->__originalCacheConfig = null;
-		}
-		return $success;
-	}
-
 }
 
 ?>
