@@ -148,7 +148,7 @@ class SluggableRoute extends CakeRoute {
 			));
 			$counts = $Model->find('all', array(
 				'fields' => array(					
-					'LOWER('.$Model->name.'.'.$field.') AS '.$field,
+					'LOWER(TRIM('.$Model->name.'.'.$field.')) AS '.$field,
 					'COUNT(*) AS count'
 				),
 				'group' => array(
@@ -160,7 +160,7 @@ class SluggableRoute extends CakeRoute {
 			foreach ($slugs as $pk => $fields) {
 				$values = array(
 					'_field' => $fields[$Model->name][$field],
-					'_count' => $counts[strtolower($fields[$Model->name][$field])],
+					'_count' => $counts[strtolower(trim($fields[$Model->name][$field]))],
 					'_pk' => $fields[$Model->name][$Model->primaryKey]
 				);
 				$listedSlugs[$fields[$Model->name][$Model->primaryKey]] = $this->slug($values);
