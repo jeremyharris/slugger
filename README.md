@@ -68,6 +68,9 @@ to those slugs. You can make this the default behavior by setting
 If Slugger cannot find a slug, it will automatically invalidate the cache if
 you set `'autoInvalidate' => true` in your route options.
 
+If `'prependPk' => true` in your route options, missing slugs will extract the
+primary key and just use it to create a named parameter.
+
 ## Custom slug function
 
 You can define a custom function to use when slugging your urls by setting the
@@ -102,6 +105,27 @@ system's setup.
 
 *Note: This functionality replaces the briefly available 'iconv' option. Use
 the iconv example above instead.*
+
+### Custom slug + `'prependPk' => true`
+
+If you define a custom slug function and you're forcing prepending the primary
+key, missing slugs will just use the primary key instead of breaking. You may 
+need to define a function to extract the PK from your custom slug if the custom 
+function doesn't separate by dashes (`-`).
+
+Define it in the 'extractPkFunction' key in the route options. The key accepts a 
+php callback and passes one argument, the string to slug. It expects the primary 
+key value to be returned.
+
+    Router::connect('/posts/:action/*',
+        array(),
+        array(
+            'routeClass' => 'SluggableRoute',
+            'models' => array('Post'),
+            'slugFunction' => 'my_custom_iconv_slugger',
+            'extractPkFunction' => 'some_custom_extract_function'
+        )
+    );
 
 ## Caching
 

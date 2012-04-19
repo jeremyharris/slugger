@@ -67,6 +67,14 @@ class SluggableRoute extends CakeRoute {
 					if (isset($slugSet[$pass])) {
 						unset($passed[$key]);
 						$passed[] = $checkNamed.':'.$slugSet[$pass];
+					} elseif (isset($this->options['prependPk']) && $this->options['prependPk']) {
+						$slugSet = $this->getSlugs($checkNamed, $slugField);
+						$pk = $this->_extractPk($pass);
+						if (isset($slugSet[$pk])) {
+							unset($passed[$key]);
+							$passed[] = $checkNamed.':'.$pk;
+						}
+						$slugSet = array_flip($slugSet);
 					}
 				}
 				$params['_args_'] = implode('/', $passed);
@@ -138,6 +146,20 @@ class SluggableRoute extends CakeRoute {
 			return call_user_func($this->options['slugFunction'], $str);
 		}
 		return strtolower(Inflector::slug($str, $replacement));
+	}
+
+/**
+ * Extracts a PK from an existing slug.
+ *
+ * @param string $str The string to extract the pk from
+ * @return integer
+ */
+	function _extractPk($str) {
+		if (isset($this->options['extractPkFunction'])) {
+			return call_user_func($this->options['extractPkFunction'], $str);
+		}
+		$exp = explode('-', $str);
+		return $exp[0];
 	}
 
 /**

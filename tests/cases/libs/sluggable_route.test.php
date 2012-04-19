@@ -241,6 +241,29 @@ class SluggableRouteTestCase extends CakeTestCase {
 		));
 		$expected = '/route_tests/view/2-another-title';
 		$this->assertEqual($result, $expected);
+		
+		$urlArray = Router::parse('/route_tests/view/2-another-title');
+		$result = $urlArray['named'];
+		$expected = array(
+			'RouteTest' => 2
+		);
+		$this->assertEqual($result, $expected);
+		
+		$urlArray = Router::parse('/route_tests/view/2-bad-slug-good-pk');
+		$result = $urlArray['named'];
+		$expected = array(
+			'RouteTest' => 2
+		);
+		$this->assertEqual($result, $expected);
+		
+		$urlArray = Router::parse('/route_tests/view/200-bad-slug-bad-pk');
+		$result = $urlArray['named'];
+		$expected = array();
+		$this->assertEqual($result, $expected);
+		
+		$result = $urlArray['pass'];
+		$expected = array('200-bad-slug-bad-pk');
+		$this->assertEqual($result, $expected);
 	}
 
 	function testGetSlugs() {
