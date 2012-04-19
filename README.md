@@ -77,6 +77,7 @@ and passes one argument, the string to slug. It expects a string to be returned.
 For example, to use a custom function:
 
     function my_custom_iconv_slugger($str) {
+        $replacement = '_';
         $str = preg_replace('/[^a-z0-9 ]/i', '', iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $str));
         $quotedReplacement = preg_quote($replacement, '/');
         $merge = array(
