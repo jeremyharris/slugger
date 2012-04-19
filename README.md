@@ -63,6 +63,11 @@ If Slugger finds duplicate instances of a slug, it will prepend the primary key
 to those slugs. You can make this the default behavior by setting 
 `'prependPk' => true` in the route options.
 
+## Missing slugs
+
+If Slugger cannot find a slug, it will automatically invalidate the cache if
+you set `'autoInvalidate' => true` in your route options.
+
 ## Custom slug function
 
 You can define a custom function to use when slugging your urls by setting the

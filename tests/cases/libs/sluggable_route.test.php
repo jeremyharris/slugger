@@ -123,6 +123,43 @@ class SluggableRouteTestCase extends CakeTestCase {
 		$results = $Sluggable->_generateSlug('RouteTest', 4);
 		$this->assertEqual($results, '4-a-page-title');
 	}
+	
+	function testAutoInvalidateCache() {
+		$Sluggable = new SluggableRoute('/:controller/:action/*', array(), array(
+			'models' => array('RouteTest'),
+			'autoInvalidate' => true
+		));
+		
+		// setup bad cache, so it automatically invalidates it
+		$Sluggable->RouteTest_slugs = array(
+			10 => 'bad_cache'
+		);
+		// try for a slug, which will invalidate the bad cache
+		$Sluggable->match(array(
+			'controller' => 'route_tests',
+			'action' => 'view',
+			'RouteTest' => 1
+		));
+		$result = $Sluggable->RouteTest_slugs;
+		$expected = array(
+			1 => 'a-page-title',
+			2 => 'another-title',
+			3 => 'i-love-cakephp',
+		);
+		$this->assertEqual($result, $expected);
+		
+		$Sluggable->RouteTest_slugs = array(
+			10 => 'bad_cache'
+		);
+		$Sluggable->parse('/route_tests/view/another-title');
+		$result = $Sluggable->RouteTest_slugs;
+		$expected = array(
+			1 => 'a-page-title',
+			2 => 'another-title',
+			3 => 'i-love-cakephp',
+		);
+		$this->assertEqual($result, $expected);
+	}
 
 	function testInvalidateCache() {
 		$Sluggable = new SluggableRoute('/', array(), array('models' => array('RouteTest')));

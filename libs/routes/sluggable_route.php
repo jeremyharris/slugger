@@ -59,6 +59,11 @@ class SluggableRoute extends CakeRoute {
 				$slugSet = array_flip($slugSet);
 				$passed = explode('/', $params['_args_']);
 				foreach ($passed as $key => $pass) {
+					if (!isset($slugSet[$pass]) && isset($this->options['autoInvalidate']) && $this->options['autoInvalidate']) {
+						$this->invalidateCache($checkNamed);
+						$slugSet = $this->getSlugs($checkNamed, $slugField);
+						$slugSet = array_flip($slugSet);
+					}
 					if (isset($slugSet[$pass])) {
 						unset($passed[$key]);
 						$passed[] = $checkNamed.':'.$slugSet[$pass];
@@ -90,6 +95,10 @@ class SluggableRoute extends CakeRoute {
 					$slugSet = $this->getSlugs($checkNamed, $slugField);
 					if (empty($slugSet)) {
 						continue;
+					}
+					if (!isset($slugSet[$url[$checkNamed]]) && isset($this->options['autoInvalidate']) && $this->options['autoInvalidate']) {
+						$this->invalidateCache($checkNamed);
+						$slugSet = $this->getSlugs($checkNamed, $slugField);
 					}
 					if (isset($slugSet[$url[$checkNamed]])) {
 						$url[] = $slugSet[$url[$checkNamed]];
