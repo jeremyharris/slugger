@@ -159,6 +159,9 @@ class SluggableRoute extends CakeRoute {
 			return call_user_func($this->options['extractPkFunction'], $str);
 		}
 		$exp = explode('-', $str);
+		if (count($exp) == 1 || !is_numeric($exp[0])) {
+			return false;
+		}
 		return $exp[0];
 	}
 
