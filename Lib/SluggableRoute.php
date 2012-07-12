@@ -11,6 +11,7 @@
  * @subpackage    slugger.Lib
  * @license       MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
+ App::uses('CakeRoute', 'Routing/Route');
 
 /**
  * Sluggable Route
