@@ -1,0 +1,18 @@
+{
+    "name": "jeremyharris/slugger",
+    "type": "cakephp-plugin",
+    "description": "Slugger is a plugin for CakePHP that automatically generates slugs",
+    "keywords": [
+        "cakephp", "plugin", "slug", "seo"
+    ],
+    "homepage": "https://github.com/jeremyharris/slugger",
+    "authors": [
+        {
+            "name": "Jeremy Harris",
+            "email": "jeremy@someguyjeremy.com"
+        }
+    ],
+    "require": {
+        "composer/installers": "*"
+    }
+}
