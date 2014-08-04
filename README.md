@@ -20,7 +20,7 @@ by [Mark Story's blog][1]).
 
 ## Usage
 
-    App::uses('SluggableRoute', 'Slugger.Lib');
+    App::uses('SluggableRoute', 'Slugger.Routing/Route');
 
     Router::connect(/posts/:action/*,
         array(),

@@ -1,6 +1,6 @@
 <?php
 
-App::uses('SluggableRoute', 'Slugger.Lib');
+App::uses('SluggableRoute', 'Slugger.Routing/Route');
 App::uses('Router', 'Routing');
 
 class SluggableRouteTestCase extends CakeTestCase {
@@ -25,7 +25,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 		Router::reload();
 		unset($this->RouteTest);
 	}
-	
+
 	function tearDown() {
 		Cache::clear(false, 'Slugger');
 	}
@@ -106,12 +106,12 @@ class SluggableRouteTestCase extends CakeTestCase {
 		$expected = '/route_tests/view/3-i-love-cakephp';
 		$this->assertEquals($results, $expected);
 	}
-	
+
 	function testGenerateSlug() {
 		$Sluggable = new SluggableRoute('/', array(), array('models' => array('RouteTest')));
-		
+
 		$this->assertFalse($Sluggable->generateSlug('RouteTest', 100));
-		
+
 		$results = $Sluggable->generateSlug('RouteTest', 1);
 		$this->assertEquals($results, 'a-page-title');
 
@@ -158,7 +158,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 
 		$Sluggable->invalidateCache('RouteTest');
 		$Sluggable->invalidateCache('RouteTest', 2);
-		
+
 		$this->assertFalse(isset($Sluggable->RouteTest_slugs));
 		$this->assertFalse(Cache::read('RouteTest_slugs', 'Slugger'));
 	}
@@ -228,7 +228,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 
 	function testSlug() {
 		$SluggableRoute = new SluggableRoute(null, null, null);
-		
+
 		$slug = array(
 			'_pk' => 1,
 			'_field' => 'Page Title',

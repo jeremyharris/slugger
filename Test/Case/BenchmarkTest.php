@@ -4,7 +4,7 @@
  * benchmarking of the route's caching and slugging ability
  */
 
-App::uses('SluggableRoute', 'Slugger.Lib');
+App::uses('SluggableRoute', 'Slugger.Routing/Route');
 App::uses('Router', 'Routing');
 
 class BenchmarkTestCase extends CakeTestCase {
@@ -29,7 +29,7 @@ class BenchmarkTestCase extends CakeTestCase {
 		Router::reload();
 		unset($this->RouteTest);
 	}
-	
+
 	function tearDown() {
 		Cache::clear(false, 'Slugger');
 	}
@@ -44,7 +44,7 @@ class BenchmarkTestCase extends CakeTestCase {
 		debug("Routed $records records $iterations times using var cache: $speed2 s");
 		debug('Speed increase: '.(round($speed1/$speed2*100)-100).'%');
 		$this->_clearVarCache();
-		$speed3 = $this->_iterate($iterations);		
+		$speed3 = $this->_iterate($iterations);
 		debug("Routed $records records $iterations times new request, using cache: $speed3 s");
 		debug('Speed increase: '.(round($speed1/$speed3*100)-100).'%');
 	}
