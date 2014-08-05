@@ -1,9 +1,9 @@
 # Slugger
 
 [Slugger][3] is a plugin that basically rewrites cake urls (using routing) into
-slugged urls automatically using a named parameter.
+slugged urls automatically:
 
-    '/posts/view/Post:12'
+    '/posts/view/12'
 
 automatically becomes
 
@@ -14,6 +14,9 @@ etc. It also avoids the `Model::findBySlug()` solution that many people use.
 Search for your post using the primary key instead! (Initial development sparked
 by [Mark Story's blog][1]).
 
+The slug is then transparently reverted back into the proper format for your
+controller action.
+
 ## Requirements
 
 * CakePHP 2.0.x (check tags for older versions of CakePHP)
@@ -22,46 +25,61 @@ by [Mark Story's blog][1]).
 
     App::uses('SluggableRoute', 'Slugger.Routing/Route');
 
-    Router::connect(/posts/:action/*,
+    Router::connect(/posts/:action/:Post,
         array(),
         array(
-            'routeClass' => 'SluggableRoute',
+            'routeClass' => 'Slugger.SluggableRoute',
             'models' => array('Post')
         )
     );
 
-In order for it to work, the named parameter needs to be named the model's name
-and the value needs to be the primaryKey value. Passing a cake url array such as
+This is the minimal default configuration. We're using the SluggableRoute class
+for this route, and checking for the Post model to generate slugs. The `:Post`
+key is our passed key (`$id` in the action).
 
-    array(
-        'controller' => 'posts',
-        'action' => 'view',
-        'Post' => 12
-    )
+### Options
 
-turns into a url string like `/posts/view/my-post-title`, then back into the
-proper request for your controller to handle by putting `'Post' => 12` back
-into the named parameters. In your controller, get the post id by checking
-`passedArgs`.
-
-    function view() {
-        $id = $this->passedArgs['Post'];
-        $post = $this->Post->read(null, $id);
-        // do controller stuff
-    }
-
-By default, the field used for the slug is the model's `displayField`. To change
-this, change your connection to:
-
-    Router::connect('/posts/:action/*',
+    Router::connect(/posts/:action/:Post,
         array(),
         array(
-            'routeClass' => 'SluggableRoute',
-            'models' => array('Post' => 'different_field')
+            'routeClass' => 'Slugger.SluggableRoute',
+            'models' => array(
+                '<MODEL_NAME>' => array(
+                    'slugField' => '<FIELD_TO_SLUG>',
+                    'param' => '<SLUG_PARAM>'
+                )
+            ),
+            'slugFunction' => '<SLUG_FUNCTION>'
         )
     );
 
-## Custom slug function
+- `<MODEL_NAME>` **Required** At least one model name is required. These models
+will be searched when pulling and generating the slug.
+- `<FIELD_TO_SLUG>` By default, Slugger slugs the `$displayField` set on the
+model. If you wish to use a different field as the slug, define it here.
+- `<SLUG_PARAM>` By default, `:<MODEL_NAME>` is taken from the route and replaced
+with a slug. Instead of passed args, you can use named parameters or the query
+string.
+- `<SLUG_FUNCTION>` A callable. By default, uses `Inflector::slug`.
+
+#### Defining the slug param
+
+The slug parameter is what Slugger pulls from the routed URL and replaces with
+your slug. By default, it checks for the `:<MODEL_NAME>` passed key.
+
+`:Post` Slugs the `:Post` route element:
+
+    /post/view/5 --> /post/view/my-post-title
+
+`Post` Slugs the `Post` named param:
+
+    /post/view/Post:5 --> /post/view/my-post-title
+
+`?Post` Slugs the `Post` named query arg:
+
+    /post/view?Post=5 --> /post/view/my-post-title
+
+#### Custom slug function
 
 You can define a custom function to use when slugging your urls by setting the
 'slugFunction' key in the route options. This key accepts a php [callback][5]
@@ -92,18 +110,43 @@ For example, to use a custom function:
 thereby stripping invalid characters. It's much faster but depends on your
 system's setup.
 
-*Note: This functionality replaces the briefly available 'iconv' option. Use
-the iconv example above instead.*
+### Using Slugger in your application
+
+Create links using Cake's helpers and Router to take advantage of automatically
+generated slugs:
+
+    array(
+        'controller' => 'posts',
+        'action' => 'view',
+        12
+    )
+
+turns into a url string like `/posts/view/my-post-title`, then back into the
+proper request for your controller to handle by putting `12` back into the passed
+arguments. In your controller, get the post id by checking:
+
+    function view($id = null) {
+        $post = $this->Post->read(null, $id);
+        // do controller stuff
+    }
+
+If you have defined a custom `<SLUG_PARAM>`, Slugger will replace whatever
+parameter type you chose and put the original route array back together.
+
 
 ## Caching
 
 Slugger caches by default. When you update records that the Sluggable route uses,
 you'll need to remove the cache. For example, updating a User's username
 
+    App::uses('SlugCache', 'Slugger.Lib');
+
     $this->User->id = 3;
     $this->User->saveField('username', 'newUsername');
-    $Route = new SluggableRoute('/', array(), array('models' => array('User')));
-    $success = $Route->invalidateCache('User', $this->User->id);
+    // invalidate entire model cache
+    SlugCache::invalidate('User');
+    // or invalidate just the single user
+    SlugCache::invalidate('User', $this->User->id);
 
 Invalidating after saves and deletions is a good idea. You can also remove all
 of the cache for an entire model like so:
@@ -111,24 +154,57 @@ of the cache for an entire model like so:
     $Route = new SluggableRoute('/', array(), array('models' => array('User')));
     $success = $Route->invalidateCache('User');
 
+## Examples
+
+### Named Parameter example
+
+    Router::connect(/posts/:action/*,
+        array(),
+        array(
+            'routeClass' => 'Slugger.SluggableRoute',
+            'models' => array(
+                'Post' => array(
+                    'slugField' => 'post_title',
+                    'param' => 'Post'
+                ),
+                'Author' => array(
+                    'param' => 'Author'
+                )
+            )
+        )
+    );
+
+Using the above route
+
+    array(
+        'controller' => 'posts',
+        'action' => 'view',
+        'Post' => 12,
+        'Author' => 1
+    )
+
+Becomes the `/posts/view/jeremy/sluggable-is-cool`, and is accessed in the
+controller as so:
+
+    function view() {
+        $post = $this->Post->read(null, $this->request->params['named']['Post']);
+        $author = $this->Post->Author->read(null, $this->request->params['named']['Author']);
+        // do controller stuff
+    }
+
 ## Notes and Features
 
 * More than one model can be passed via the `models` param in the route
   options.
 * If a model has (what will become) duplicate slugs, sluggable route will
   automatically prepend the id to the slug so it doesn't conflict
-* If no slug is found, it will fall back to the original `Post:12` url so you
+* If no slug is found, it will fall back to the original url so you
   don't have to change anything in your database
 * Don't think of this as permalinks! These are just to make your url's a little
   prettier
 
 ## Limitations
 
-* Hasn't been tested with large amounts of data (use at your own risk to
-  preformance!), but it is cached so hits on the db should be minimal. The cache
-  config is `Slugger.short` if you need to clear it. The biggest bottleneck, if
-  any, would be in writing a ton of urls on the same page. I'm testing ways to
-  improve this.
 * Can conflict with multiple models with the same slug. A solution would be
   not to slug more than one model per route
 * If someone was to bookmark a slugged url and after the fact you added a post
@@ -148,7 +224,3 @@ Redistributions of files must retain the above copyright notice.
 [3]: http://42pixels.com/blog/slugs-ugly-bugs-pretty-urls
 [4]: http://us.php.net/manual/en/function.iconv.php
 [5]: http://us.php.net/manual/en/language.pseudo-types.php#language.types.callback
-
-## Authors
-
-* Pierre Martin (real34) - Cache invalidation
