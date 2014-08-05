@@ -308,7 +308,11 @@ class SluggableRouteTestCase extends CakeTestCase {
 			array(),
 			array(
 				'routeClass' => 'Slugger.SluggableRoute',
-				'models' => array('RouteTest')
+				'models' => array(
+					'RouteTest' => array(
+						'param' => 'RouteTest'
+					)
+				)
 			)
 		);
 
@@ -343,6 +347,97 @@ class SluggableRouteTestCase extends CakeTestCase {
 			'RouteTest' => 5
 		));
 		$expected = '/route_tests/view/RouteTest:5';
+		$this->assertEquals($result, $expected);
+
+		Router::reload();
+		Router::connect('/:controller/:action/*',
+			array(),
+			array(
+				'routeClass' => 'Slugger.SluggableRoute',
+				'models' => array('RouteTest')
+			)
+		);
+
+		$result = Router::url(array(
+			'controller' => 'route_tests',
+			'action' => 'view',
+			1
+		));
+		$expected = '/route_tests/view/a-page-title';
+		$this->assertEquals($result, $expected);
+
+		$result = Router::url(array(
+			'controller' => 'route_tests',
+			'action' => 'view',
+			2
+		));
+		$expected = '/route_tests/view/another-title';
+		$this->assertEquals($result, $expected);
+
+		$result = Router::url(array(
+			'controller' => 'route_tests',
+			'action' => 'view',
+			2,
+			'passedVar'
+		));
+		$expected = '/route_tests/view/another-title/passedVar';
+		$this->assertEquals($result, $expected);
+
+		$result = Router::url(array(
+			'controller' => 'route_tests',
+			'action' => 'view',
+			5
+		));
+		$expected = '/route_tests/view/5';
+		$this->assertEquals($result, $expected);
+
+		Router::reload();
+		Router::connect('/:controller/:action/:post_id/*',
+			array(),
+			array(
+				'pass' => array(
+					'post_id'
+				),
+				'routeClass' => 'Slugger.SluggableRoute',
+				'models' => array(
+					'RouteTest' => array(
+						'param' => ':post_id'
+					)
+				)
+			)
+		);
+
+		$result = Router::url(array(
+			'controller' => 'route_tests',
+			'action' => 'view',
+			'post_id' => 1
+		));
+		$expected = '/route_tests/view/a-page-title';
+		$this->assertEquals($result, $expected);
+
+		$result = Router::url(array(
+			'controller' => 'route_tests',
+			'action' => 'view',
+			'post_id' => 2
+		));
+		$expected = '/route_tests/view/another-title';
+		$this->assertEquals($result, $expected);
+
+		$result = Router::url(array(
+			'controller' => 'route_tests',
+			'action' => 'view',
+			'post_id' => 2,
+			'passedVar'
+		));
+		$expected = '/route_tests/view/another-title/passedVar';
+		$this->assertEquals($result, $expected);
+
+		$result = Router::url(array(
+			'controller' => 'route_tests',
+			'action' => 'view',
+			'post_id' => 5
+		));
+		$expected = '/route_tests/view/5';
 		$this->assertEquals($result, $expected);
 	}
 

@@ -88,21 +88,37 @@ class SluggableRoute extends CakeRoute {
  */
 	public function match($url) {
 		$this->config();
-		if (isset($this->models)) {
-			foreach ($this->models as $modelName => $options) {
-				if (isset($url[$modelName])) {
-					$slugSet = $this->getSlugs($modelName);
-					if (empty($slugSet)) {
-						continue;
+		foreach ($this->models as $modelName => $options) {
+			list($paramType, $paramName) = $this->params($options);
+			$paramValue = false;
+			$path =& $url;
+			$slugSet = $this->getSlugs($modelName);
+			if (empty($slugSet)) {
+				continue;
+			}
+			switch ($paramType) {
+				case 'url':
+					if (isset($url['?']) && isset($url['?'][$paramName])) {
+						$paramValue = $url['?'][$paramName];
+						$path =& $url['?'];
 					}
-					if (isset($slugSet[$url[$modelName]])) {
-						$url[] = $slugSet[$url[$modelName]];
-						unset($url[$modelName]);
+					break;
+				case 'pass':
+					if (isset($url[$paramName]) && isset($slugSet[$url[$paramName]])) {
+						$url[$paramName] = $slugSet[$url[$paramName]];
 					}
-				}
+					break;
+				case 'named':
+					if (isset($url[$paramName])) {
+						$paramValue = $url[$paramName];
+					}
+					break;
+			}
+			if (isset($slugSet[$paramValue])) {
+				$url[] = $slugSet[$paramValue];
+				unset($path[$paramName]);
 			}
 		}
-
 		return parent::match($url);
 	}
 
@@ -134,6 +150,34 @@ class SluggableRoute extends CakeRoute {
 		if (isset($this->options['slugFunction'])) {
 			$this->slugFunction = $this->options['slugFunction'];
 		}
+	}
+
+/**
+ * Extracts param name and param type from sluggable `param` option
+ *
+ * @param array $options
+ * @return array
+ */
+	public function params($options = array()) {
+		$paramName = 0;
+		$paramType = 'pass';
+		if (isset($options['param'])) {
+			$typeKey = substr($options['param'], 0, 1);
+			switch ($typeKey) {
+				case ':':
+					$paramType = 'pass';
+					$paramName = substr($options['param'], 1);
+					break;
+				case '?':
+					$paramType = 'url';
+					$paramName = substr($options['param'], 1);
+					break;
+				default:
+					$paramType = 'named';
+					$paramName = $options['param'];
+			}
+		}
+		return array($paramType, $paramName);
 	}
 
 /**
