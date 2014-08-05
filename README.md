@@ -1,5 +1,11 @@
 # Slugger
 
+> BREAKING CHANGE
+> The original Slugger used named parameters exclusively. It now defaults to
+> passed arguments. The configuration array has also changed. Please read the
+> README for information on the new configuration. To use the original version,
+> checkout the version 1.0 tag.
+
 [Slugger][3] is a plugin that basically rewrites cake urls (using routing) into
 slugged urls automatically:
 
