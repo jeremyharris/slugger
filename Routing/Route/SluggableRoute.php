@@ -90,33 +90,22 @@ class SluggableRoute extends CakeRoute {
 		$this->config();
 		foreach ($this->models as $modelName => $options) {
 			list($paramType, $paramName) = $this->params($options);
-			$paramValue = false;
-			$path =& $url;
 			$slugSet = $this->getSlugs($modelName);
 			if (empty($slugSet)) {
 				continue;
 			}
 			switch ($paramType) {
-				case 'url':
-					if (isset($url['?']) && isset($url['?'][$paramName])) {
-						$paramValue = $url['?'][$paramName];
-						$path =& $url['?'];
-					}
-					break;
 				case 'pass':
 					if (isset($url[$paramName]) && isset($slugSet[$url[$paramName]])) {
 						$url[$paramName] = $slugSet[$url[$paramName]];
 					}
 					break;
 				case 'named':
-					if (isset($url[$paramName])) {
-						$paramValue = $url[$paramName];
+					if (isset($url[$paramName]) && isset($slugSet[$url[$paramName]])) {
+						$url[] = $slugSet[$url[$paramName]];
+						unset($url[$paramName]);
 					}
 					break;
-			}
-			if (isset($slugSet[$paramValue])) {
-				$url[] = $slugSet[$paramValue];
-				unset($path[$paramName]);
 			}
 		}
 		return parent::match($url);
@@ -166,10 +155,6 @@ class SluggableRoute extends CakeRoute {
 			switch ($typeKey) {
 				case ':':
 					$paramType = 'pass';
-					$paramName = substr($options['param'], 1);
-					break;
-				case '?':
-					$paramType = 'url';
 					$paramName = substr($options['param'], 1);
 					break;
 				default:

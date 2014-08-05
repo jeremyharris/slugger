@@ -58,8 +58,8 @@ will be searched when pulling and generating the slug.
 - `<FIELD_TO_SLUG>` By default, Slugger slugs the `$displayField` set on the
 model. If you wish to use a different field as the slug, define it here.
 - `<SLUG_PARAM>` By default, `:<MODEL_NAME>` is taken from the route and replaced
-with a slug. Instead of passed args, you can use named parameters or the query
-string.
+with a slug. If it is undefined, it assumes the first passed arg. You can also
+configure it to use named parameters.
 - `<SLUG_FUNCTION>` A callable. By default, uses `Inflector::slug`.
 
 #### Defining the slug param
@@ -74,10 +74,6 @@ your slug. By default, it checks for the `:<MODEL_NAME>` passed key.
 `Post` Slugs the `Post` named param:
 
     /post/view/Post:5 --> /post/view/my-post-title
-
-`?Post` Slugs the `Post` named query arg:
-
-    /post/view?Post=5 --> /post/view/my-post-title
 
 #### Custom slug function
 
@@ -155,6 +151,64 @@ of the cache for an entire model like so:
     $success = $Route->invalidateCache('User');
 
 ## Examples
+
+### Passed Argument example using first arg (default bake)
+
+    Router::connect(/posts/:action/*,
+        array(),
+        array(
+            'routeClass' => 'Slugger.SluggableRoute',
+            'models' => array('Post')
+        )
+    );
+
+Using the above route
+
+    array(
+        'controller' => 'posts',
+        'action' => 'view',
+        12
+    )
+
+Becomes the `/posts/view/sluggable-is-cool`, and is accessed in the
+controller as so:
+
+    function view($id) {
+        $post = $this->Post->read(null, $id);
+        // do controller stuff
+    }
+
+### Passed Argument example using keyed passed arg
+
+    Router::connect(/posts/:action/:post_id/*,
+        array(),
+        array(
+            'pass' => array('post_id'),
+            'routeClass' => 'Slugger.SluggableRoute',
+            'models' => array(
+                'Post' => array(
+                    'param' => ':post_id'
+                )
+            )
+        )
+    );
+
+Using the above route
+
+    array(
+        'controller' => 'posts',
+        'action' => 'view',
+        'anotherArg',
+        'post_id' => 12
+    )
+
+Becomes the `/posts/view/anotherArg/sluggable-is-cool`, and is accessed in the
+controller as so:
+
+    function view($id, $anotherArgWillBeHere) {
+        $post = $this->Post->read(null, $id);
+        // do controller stuff
+    }
 
 ### Named Parameter example
 
