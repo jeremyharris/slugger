@@ -7,20 +7,21 @@
  *
  * @copyright     Copyright 2010, Jeremy Harris
  * @link          http://42pixels.com
- * @package       slugger
- * @subpackage    slugger.Lib
+ * @package       Slugger
+ * @subpackage    Slugger.Routing/Route
  * @license       MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
  App::uses('CakeRoute', 'Routing/Route');
+ App::uses('Hash', 'Utility');
 
 /**
  * Sluggable Route
  *
- * Automatically slugs routes based on named parameters
+ * Automatically slugs routes
  *
- * @package       slugger
- * @subpackage    slugger.Lib
- * @link http://42pixels.com/blog/slugs-ugly-bugs-pretty-urls
+ * @package       Slugger
+ * @subpackage    Slugger.Routing/Route
+ * @link http://someguyjeremy.com/blog/slugs-ugly-bugs-pretty-urls
  * @link http://mark-story.com/posts/view/using-custom-route-classes-in-cakephp
  */
 class SluggableRoute extends CakeRoute {
