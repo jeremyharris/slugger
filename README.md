@@ -210,6 +210,17 @@ controller as so:
         // do controller stuff
     }
 
+#### Caveats
+
+A couple of things to note if using keyed passed args in your routes.
+
+- You cannot use regex to validate route elements using this method because
+routes are parsed before Slugger rewrites them, and they would fail due to the
+url string not matching an expected integer regex
+- Missing slugs (i.e., `/posts/missing-title` where `missing-title` isn't found
+as a slug) will still add the `:key` parameter to the route params because regex
+validation cannot be done
+
 ### Named Parameter example
 
     Router::connect(/posts/:action/*,

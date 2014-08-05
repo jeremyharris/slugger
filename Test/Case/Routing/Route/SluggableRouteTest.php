@@ -446,7 +446,11 @@ class SluggableRouteTestCase extends CakeTestCase {
 			array(),
 			array(
 				'routeClass' => 'Slugger.SluggableRoute',
-				'models' => array('RouteTest')
+				'models' => array(
+					'RouteTest' => array(
+						'param' => 'RouteTest'
+					)
+				)
 			)
 		);
 
@@ -481,6 +485,92 @@ class SluggableRouteTestCase extends CakeTestCase {
 			),
 			'plugin' => null,
 			'pass' => array('passedVar')
+		);
+		$this->assertEquals($result, $expected);
+
+		Router::reload();
+		Router::connect('/:controller/:action/*',
+			array(),
+			array(
+				'routeClass' => 'Slugger.SluggableRoute',
+				'models' => array('RouteTest')
+			)
+		);
+
+		$result = Router::parse('/route_tests/view/another-title');
+		$expected = array(
+			'controller' => 'route_tests',
+			'action' => 'view',
+			'named' => array(),
+			'plugin' => null,
+			'pass' => array(2)
+		);
+		$this->assertEquals($result, $expected);
+
+		$result = Router::parse('/route_tests/view/missing-title');
+		$expected = array(
+			'controller' => 'route_tests',
+			'action' => 'view',
+			'named' => array(),
+			'plugin' => null,
+			'pass' => array('missing-title')
+		);
+		$this->assertEquals($result, $expected);
+
+		$result = Router::parse('/route_tests/view/another-title/passedVar');
+		$expected = array(
+			'controller' => 'route_tests',
+			'action' => 'view',
+			'named' => array(),
+			'plugin' => null,
+			'pass' => array(2, 'passedVar')
+		);
+		$this->assertEquals($result, $expected);
+
+		Router::reload();
+		Router::connect('/:controller/:action/:id/*',
+			array(),
+			array(
+				'pass' => array('id'),
+				'routeClass' => 'Slugger.SluggableRoute',
+				'models' => array(
+					'RouteTest' => array(
+						'param' => ':id'
+					)
+				)
+			)
+		);
+
+		$result = Router::parse('/route_tests/view/another-title');
+		$expected = array(
+			'controller' => 'route_tests',
+			'action' => 'view',
+			'named' => array(),
+			'plugin' => null,
+			'id' => 2,
+			'pass' => array(2)
+		);
+		$this->assertEquals($result, $expected);
+
+		$result = Router::parse('/route_tests/view/missing-title');
+		$expected = array(
+			'controller' => 'route_tests',
+			'action' => 'view',
+			'id' => 'missing-title',
+			'named' => array(),
+			'plugin' => null,
+			'pass' => array('missing-title')
+		);
+		$this->assertEquals($result, $expected);
+
+		$result = Router::parse('/route_tests/view/another-title/passedVar');
+		$expected = array(
+			'controller' => 'route_tests',
+			'action' => 'view',
+			'named' => array(),
+			'plugin' => null,
+			'id' => 2,
+			'pass' => array(2, 'passedVar')
 		);
 		$this->assertEquals($result, $expected);
 	}

@@ -62,15 +62,21 @@ class SluggableRoute extends CakeRoute {
 
 		if (!empty($this->models) && !empty($params['pass'])) {
 			foreach ($this->models as $modelName => $options) {
+				list($paramType, $paramName) = $this->params($options);
 				$slugSet = $this->getSlugs($modelName);
 				if (empty($slugSet)) {
 					continue;
 				}
 				$slugSet = array_flip($slugSet);
-				foreach ($params['pass'] as $key => $pass) {
-					if (isset($slugSet[$pass])) {
+				foreach ($params['pass'] as $key => $param) {
+					if (isset($slugSet[$param])) {
 						unset($params['pass'][$key]);
-						$params['named'][$modelName] = $slugSet[$pass];
+						if ($paramType == 'pass' && !is_numeric($paramName)) {
+							$params[$paramName] = $slugSet[$param];
+							$params[$paramType][$key] = $slugSet[$param];
+						} else {
+							$params[$paramType][$paramName] = $slugSet[$param];
+						}
 					}
 				}
 			}
