@@ -58,7 +58,7 @@ class SluggableRoute extends CakeRoute {
 			}
 			return $params;
 		}
-		
+
 		return false;
 	}
 
@@ -87,7 +87,7 @@ class SluggableRoute extends CakeRoute {
 				}
 			}
 		}
-		
+
 		return parent::match($url);
 	}
 
@@ -133,7 +133,7 @@ class SluggableRoute extends CakeRoute {
 			$this->{$modelName.'_slugs'} = Cache::read($modelName.'_slugs', $cacheConfig);
 		}
 		if (empty($this->{$modelName.'_slugs'})) {
-			$Model = ClassRegistry::init($modelName);
+			$Model = ClassRegistry::init($modelName, true);
 			if ($Model === false) {
 				return false;
 			}
@@ -148,7 +148,7 @@ class SluggableRoute extends CakeRoute {
 				'recursive' => -1
 			));
 			$counts = $Model->find('all', array(
-				'fields' => array(					
+				'fields' => array(
 					'LOWER(TRIM('.$Model->name.'.'.$field.')) AS '.$field,
 					'COUNT(*) AS count'
 				),
@@ -169,7 +169,7 @@ class SluggableRoute extends CakeRoute {
 			Cache::write($modelName.'_slugs', $listedSlugs, $cacheConfig);
 			$this->{$modelName.'_slugs'} = $listedSlugs;
 		}
-		
+
 		return $this->{$modelName.'_slugs'};
 	}
 
@@ -248,7 +248,7 @@ class SluggableRoute extends CakeRoute {
 
 /**
  * Sets up cache config and returns config name
- * 
+ *
  * @return string Cache config name
  */
 	protected function _initSluggerCache() {
