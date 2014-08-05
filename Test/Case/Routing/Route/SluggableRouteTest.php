@@ -47,7 +47,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 			1
 		));
 		$expected = '/route_tests/view/A_page_title';
-		$this->assertEquals($result, $expected);
+		$this->assertEquals($expected, $result);
 
 		$result = Router::parse('/route_tests/view/A_page_title');
 		$expected = array(
@@ -57,7 +57,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 			'plugin' => null,
 			'pass' => array(1)
 		);
-		$this->assertEquals($result, $expected);
+		$this->assertEquals($expected, $result);
 
 		$Sluggable = new SluggableRoute('/', array(), array('models' => array('RouteTest')));
 		$Sluggable->invalidateCache('RouteTest');
@@ -77,7 +77,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 			3
 		));
 		$expected = '/route_tests/view/ILOVECAKEPHP';
-		$this->assertEquals($result, $expected);
+		$this->assertEquals($expected, $result);
 	}
 
 	public function testGroupingCaseSensitivity() {
@@ -102,7 +102,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 			4
 		));
 		$expected = '/route_tests/view/4-i-love-cakephp';
-		$this->assertEquals($results, $expected);
+		$this->assertEquals($expected, $results);
 
 		$results = Router::url(array(
 			'controller' => 'route_tests',
@@ -110,7 +110,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 			3
 		));
 		$expected = '/route_tests/view/3-i-love-cakephp';
-		$this->assertEquals($results, $expected);
+		$this->assertEquals($expected, $results);
 	}
 
 	public function testGenerateSlug() {
@@ -123,13 +123,13 @@ class SluggableRouteTestCase extends CakeTestCase {
 		$this->assertFalse($Sluggable->generateSlug('RouteTest', 100));
 
 		$results = $Sluggable->generateSlug('RouteTest', 1);
-		$this->assertEquals($results, 'a-page-title');
+		$this->assertEquals('a-page-title', $results);
 
 		$this->RouteTest->save(array('RouteTest' => array('title' => 'A page title')));
 		$results = $Sluggable->generateSlug('RouteTest', 1);
-		$this->assertEquals($results, '1-a-page-title');
+		$this->assertEquals('1-a-page-title', $results);
 		$results = $Sluggable->generateSlug('RouteTest', 4);
-		$this->assertEquals($results, '4-a-page-title');
+		$this->assertEquals('4-a-page-title', $results);
 	}
 
 	public function testInvalidateCache() {
@@ -160,7 +160,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 			2 => 'another-title',
 			3 => 'i-love-cakephp',
 		);
-		$this->assertEquals($result, $expected);
+		$this->assertEquals($expected, $result);
 
 		$result = Cache::read('RouteTest_slugs', 'Slugger');
 		$expected = array(
@@ -168,7 +168,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 			2 => 'another-title',
 			3 => 'i-love-cakephp',
 		);
-		$this->assertEquals($result, $expected);
+		$this->assertEquals($expected, $result);
 
 		$Sluggable->invalidateCache('RouteTest');
 		$Sluggable->invalidateCache('RouteTest', 2);
@@ -195,7 +195,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 			'RouteTest' => 1
 		));
 		$expected = '/route_tests/view/RouteTest:1';
-		$this->assertEquals($result, $expected);
+		$this->assertEquals($expected, $result);
 	}
 
 	public function testPrependPk() {
@@ -214,7 +214,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 			1
 		));
 		$expected = '/route_tests/view/1-a-page-title';
-		$this->assertEquals($result, $expected);
+		$this->assertEquals($expected, $result);
 
 		$result = Router::url(array(
 			'controller' => 'route_tests',
@@ -222,7 +222,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 			2
 		));
 		$expected = '/route_tests/view/2-another-title';
-		$this->assertEquals($result, $expected);
+		$this->assertEquals($expected, $result);
 	}
 
 	public function testGetSlugs() {
@@ -238,7 +238,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 			2 => 'another-title',
 			3 => 'i-love-cakephp',
 		);
-		$this->assertEquals($results, $expected);
+		$this->assertEquals($expected, $results);
 
 		unset($Sluggable->RouteTest_slugs);
 		Cache::clear(false, 'Slugger');
@@ -256,7 +256,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 			2 => 'routing-is-fun',
 			3 => 'cake-rocks',
 		);
-		$this->assertEquals($results, $expected);
+		$this->assertEquals($expected, $results);
 	}
 
 	public function testSlug() {
@@ -269,7 +269,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 		);
 		$result = $SluggableRoute->slug($slug);
 		$expected = 'page-title';
-		$this->assertEquals($result, $expected);
+		$this->assertEquals($expected, $result);
 
 		$slug = array(
 			'_pk' => 1,
@@ -278,7 +278,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 		);
 		$result = $SluggableRoute->slug($slug);
 		$expected = 'routing-is-fun';
-		$this->assertEquals($result, $expected);
+		$this->assertEquals($expected, $result);
 
 		// check for duplicates
 		$slug = array(
@@ -288,7 +288,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 		);
 		$result = $SluggableRoute->slug($slug);
 		$expected = '1-page-title';
-		$this->assertEquals($result, $expected);
+		$this->assertEquals($expected, $result);
 
 		// check non-ascii chars
 		$slug = array(
@@ -298,7 +298,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 		);
 		$result = $SluggableRoute->slug($slug);
 		$expected = '1-nice-page';
-		$this->assertEquals($result, $expected);
+		$this->assertEquals($expected, $result);
 	}
 
 	public function testMatch() {
@@ -320,7 +320,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 			'RouteTest' => 1
 		));
 		$expected = '/route_tests/view/a-page-title';
-		$this->assertEquals($result, $expected);
+		$this->assertEquals($expected, $result);
 
 		$result = Router::url(array(
 			'controller' => 'route_tests',
@@ -328,7 +328,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 			'RouteTest' => 2
 		));
 		$expected = '/route_tests/view/another-title';
-		$this->assertEquals($result, $expected);
+		$this->assertEquals($expected, $result);
 
 		$result = Router::url(array(
 			'controller' => 'route_tests',
@@ -337,7 +337,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 			'passedVar'
 		));
 		$expected = '/route_tests/view/passedVar/another-title';
-		$this->assertEquals($result, $expected);
+		$this->assertEquals($expected, $result);
 
 		$result = Router::url(array(
 			'controller' => 'route_tests',
@@ -345,7 +345,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 			'RouteTest' => 5
 		));
 		$expected = '/route_tests/view/RouteTest:5';
-		$this->assertEquals($result, $expected);
+		$this->assertEquals($expected, $result);
 
 		Router::reload();
 		Router::connect('/:controller/:action/*',
@@ -362,7 +362,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 			1
 		));
 		$expected = '/route_tests/view/a-page-title';
-		$this->assertEquals($result, $expected);
+		$this->assertEquals($expected, $result);
 
 		$result = Router::url(array(
 			'controller' => 'route_tests',
@@ -370,7 +370,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 			2
 		));
 		$expected = '/route_tests/view/another-title';
-		$this->assertEquals($result, $expected);
+		$this->assertEquals($expected, $result);
 
 		$result = Router::url(array(
 			'controller' => 'route_tests',
@@ -379,7 +379,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 			'passedVar'
 		));
 		$expected = '/route_tests/view/another-title/passedVar';
-		$this->assertEquals($result, $expected);
+		$this->assertEquals($expected, $result);
 
 		$result = Router::url(array(
 			'controller' => 'route_tests',
@@ -387,7 +387,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 			5
 		));
 		$expected = '/route_tests/view/5';
-		$this->assertEquals($result, $expected);
+		$this->assertEquals($expected, $result);
 
 		Router::reload();
 		Router::connect('/:controller/:action/:post_id/*',
@@ -411,7 +411,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 			'post_id' => 1
 		));
 		$expected = '/route_tests/view/a-page-title';
-		$this->assertEquals($result, $expected);
+		$this->assertEquals($expected, $result);
 
 		$result = Router::url(array(
 			'controller' => 'route_tests',
@@ -419,7 +419,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 			'post_id' => 2
 		));
 		$expected = '/route_tests/view/another-title';
-		$this->assertEquals($result, $expected);
+		$this->assertEquals($expected, $result);
 
 		$result = Router::url(array(
 			'controller' => 'route_tests',
@@ -428,7 +428,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 			'passedVar'
 		));
 		$expected = '/route_tests/view/another-title/passedVar';
-		$this->assertEquals($result, $expected);
+		$this->assertEquals($expected, $result);
 
 		$result = Router::url(array(
 			'controller' => 'route_tests',
@@ -436,7 +436,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 			'post_id' => 5
 		));
 		$expected = '/route_tests/view/5';
-		$this->assertEquals($result, $expected);
+		$this->assertEquals($expected, $result);
 	}
 
 	public function testParse() {
@@ -462,7 +462,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 			'plugin' => null,
 			'pass' => array()
 		);
-		$this->assertEquals($result, $expected);
+		$this->assertEquals($expected, $result);
 
 		$result = Router::parse('/route_tests/view/missing-title');
 		$expected = array(
@@ -472,7 +472,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 			'plugin' => null,
 			'pass' => array('missing-title')
 		);
-		$this->assertEquals($result, $expected);
+		$this->assertEquals($expected, $result);
 
 		$result = Router::parse('/route_tests/view/passedVar/another-title');
 		$expected = array(
@@ -484,7 +484,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 			'plugin' => null,
 			'pass' => array('passedVar')
 		);
-		$this->assertEquals($result, $expected);
+		$this->assertEquals($expected, $result);
 
 		Router::reload();
 		Router::connect('/:controller/:action/*',
@@ -503,7 +503,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 			'plugin' => null,
 			'pass' => array(2)
 		);
-		$this->assertEquals($result, $expected);
+		$this->assertEquals($expected, $result);
 
 		$result = Router::parse('/route_tests/view/missing-title');
 		$expected = array(
@@ -513,7 +513,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 			'plugin' => null,
 			'pass' => array('missing-title')
 		);
-		$this->assertEquals($result, $expected);
+		$this->assertEquals($expected, $result);
 
 		$result = Router::parse('/route_tests/view/another-title/passedVar');
 		$expected = array(
@@ -523,7 +523,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 			'plugin' => null,
 			'pass' => array(2, 'passedVar')
 		);
-		$this->assertEquals($result, $expected);
+		$this->assertEquals($expected, $result);
 
 		Router::reload();
 		Router::connect('/:controller/:action/:id/*',
@@ -548,7 +548,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 			'id' => 2,
 			'pass' => array(2)
 		);
-		$this->assertEquals($result, $expected);
+		$this->assertEquals($expected, $result);
 
 		$result = Router::parse('/route_tests/view/missing-title');
 		$expected = array(
@@ -559,7 +559,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 			'plugin' => null,
 			'pass' => array('missing-title')
 		);
-		$this->assertEquals($result, $expected);
+		$this->assertEquals($expected, $result);
 
 		$result = Router::parse('/route_tests/view/another-title/passedVar');
 		$expected = array(
@@ -570,7 +570,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 			'id' => 2,
 			'pass' => array(2, 'passedVar')
 		);
-		$this->assertEquals($result, $expected);
+		$this->assertEquals($expected, $result);
 	}
 
 	public function testDuplicateSlug() {
@@ -594,7 +594,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 			1
 		));
 		$expected = '/route_tests/view/1-a-page-title';
-		$this->assertEquals($result, $expected);
+		$this->assertEquals($expected, $result);
 
 		$result = Router::parse('/route_tests/view/a-page-title');
 		$expected = array(
@@ -604,7 +604,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 			'plugin' => null,
 			'pass' => array('a-page-title')
 		);
-		$this->assertEquals($result, $expected);
+		$this->assertEquals($expected, $result);
 
 		$result = Router::parse('/route_tests/view/1-a-page-title');
 		$expected = array(
@@ -614,7 +614,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 			'plugin' => null,
 			'pass' => array(1)
 		);
-		$this->assertEquals($result, $expected);
+		$this->assertEquals($expected, $result);
 
 		$id = $this->RouteTest->id;
 		$result = Router::parse('/route_tests/view/'.$id.'-a-page-title');
@@ -625,7 +625,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 			'plugin' => null,
 			'pass' => array($id)
 		);
-		$this->assertEquals($result, $expected);
+		$this->assertEquals($expected, $result);
 	}
 
 	public function testSlugField() {
@@ -643,7 +643,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 			3
 		));
 		$expected = '/route_tests/view/cake-rocks';
-		$this->assertEquals($result, $expected);
+		$this->assertEquals($expected, $result);
 
 		$result = Router::parse('/route_tests/view/routing-is-fun');
 		$expected = array(
@@ -653,7 +653,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 			'plugin' => null,
 			'pass' => array(2)
 		);
-		$this->assertEquals($result, $expected);
+		$this->assertEquals($expected, $result);
 	}
 
 	public function testMultipleModels() {
@@ -673,7 +673,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 			'plugin' => null,
 			'pass' => array(2)
 		);
-		$this->assertEquals($result, $expected);
+		$this->assertEquals($expected, $result);
 
 		$result = Router::parse('/route_tests/view/my-blog-post');
 		$expected = array(
@@ -683,7 +683,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 			'plugin' => null,
 			'pass' => array(1)
 		);
-		$this->assertEquals($result, $expected);
+		$this->assertEquals($expected, $result);
 
 		Router::reload();
 		Router::connect('/:controller/:action/*',
@@ -707,7 +707,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 			'plugin' => null,
 			'pass' => array(2)
 		);
-		$this->assertEquals($result, $expected);
+		$this->assertEquals($expected, $result);
 
 		$result = Router::parse('/route_tests/view/my-blog-post');
 		$expected = array(
@@ -719,7 +719,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 			'plugin' => null,
 			'pass' => array()
 		);
-		$this->assertEquals($result, $expected);
+		$this->assertEquals($expected, $result);
 	}
 
 	public function testMissingModel() {
@@ -739,7 +739,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 			'plugin' => null,
 			'pass' => array('my-slug')
 		);
-		$this->assertEquals($result, $expected);
+		$this->assertEquals($expected, $result);
 	}
 
 }
