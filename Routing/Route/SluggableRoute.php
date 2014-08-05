@@ -26,25 +26,43 @@
 class SluggableRoute extends CakeRoute {
 
 /**
+ * Whether to prepend the pk by default
+ *
+ * @var boolean
+ */
+	protected $prependPk = false;
+
+/**
+ * Slugging function
+ *
+ * @var callable
+ */
+	protected $slugFunction = null;
+
+/**
+ * List of models to search
+ *
+ * @var array
+ */
+	protected $models;
+
+/**
  * Override the parsing function to find an id based on a slug
  *
  * @param string $url Url string
  * @return boolean
  */
     public function parse($url) {
+		$this->config();
 		$params = parent::parse($url);
 
 		if (empty($params)) {
 			return false;
 		}
 
-		if (isset($this->options['models']) && !empty($params['pass'])) {
-			foreach ($this->options['models'] as $checkNamed => $slugField) {
-				if (is_numeric($checkNamed)) {
-					$checkNamed = $slugField;
-					$slugField = null;
-				}
-				$slugSet = $this->getSlugs($checkNamed, $slugField);
+		if (!empty($this->models) && !empty($params['pass'])) {
+			foreach ($this->models as $modelName => $options) {
+				$slugSet = $this->getSlugs($modelName);
 				if (empty($slugSet)) {
 					continue;
 				}
@@ -52,7 +70,7 @@ class SluggableRoute extends CakeRoute {
 				foreach ($params['pass'] as $key => $pass) {
 					if (isset($slugSet[$pass])) {
 						unset($params['pass'][$key]);
-						$params['named'][$checkNamed] = $slugSet[$pass];
+						$params['named'][$modelName] = $slugSet[$pass];
 					}
 				}
 			}
@@ -69,20 +87,17 @@ class SluggableRoute extends CakeRoute {
  * @return boolean
  */
 	public function match($url) {
-		if (isset($this->options['models'])) {
-			foreach ($this->options['models'] as $checkNamed => $slugField) {
-				if (is_numeric($checkNamed)) {
-					$checkNamed = $slugField;
-					$slugField = null;
-				}
-				if (isset($url[$checkNamed])) {
-					$slugSet = $this->getSlugs($checkNamed, $slugField);
+		$this->config();
+		if (isset($this->models)) {
+			foreach ($this->models as $modelName => $options) {
+				if (isset($url[$modelName])) {
+					$slugSet = $this->getSlugs($modelName);
 					if (empty($slugSet)) {
 						continue;
 					}
-					if (isset($slugSet[$url[$checkNamed]])) {
-						$url[] = $slugSet[$url[$checkNamed]];
-						unset($url[$checkNamed]);
+					if (isset($slugSet[$url[$modelName]])) {
+						$url[] = $slugSet[$url[$modelName]];
+						unset($url[$modelName]);
 					}
 				}
 			}
@@ -99,10 +114,26 @@ class SluggableRoute extends CakeRoute {
  */
 	public function slug($slug) {
 		$str = $slug['_field'];
-		if ($slug['_count'] > 1 || (isset($this->options['prependPk']) && $this->options['prependPk'])) {
+		if ($slug['_count'] > 1 || $this->prependPk) {
 			$str = $slug['_pk'].' '.$str;
 		}
 		return $this->_slug($str);
+	}
+
+/**
+ * Normalizes and sets config options as properties
+ */
+	public function config() {
+		if (empty($this->options['models'])) {
+			return;
+		}
+		$this->models = Hash::normalize($this->options['models']);
+		if (isset($this->options['prependPk'])) {
+			$this->prependPk = $this->options['prependPk'];
+		}
+		if (isset($this->options['slugFunction'])) {
+			$this->slugFunction = $this->options['slugFunction'];
+		}
 	}
 
 /**
@@ -114,8 +145,8 @@ class SluggableRoute extends CakeRoute {
  * @return string
  */
 	protected function _slug($str, $replacement = '-') {
-		if (isset($this->options['slugFunction'])) {
-			return call_user_func($this->options['slugFunction'], $str);
+		if (!empty($this->slugFunction)) {
+			return call_user_func($this->slugFunction, $str);
 		}
 		return strtolower(Inflector::slug($str, $replacement));
 	}
@@ -127,7 +158,7 @@ class SluggableRoute extends CakeRoute {
  * @param string $field The field to pull
  * @return array Array of slugs
  */
-	public function getSlugs($modelName, $field = null) {
+	public function getSlugs($modelName) {
 		$cacheConfig = $this->_initSluggerCache();
 		if (!isset($this->{$modelName.'_slugs'})) {
 			$this->{$modelName.'_slugs'} = Cache::read($modelName.'_slugs', $cacheConfig);
@@ -137,8 +168,9 @@ class SluggableRoute extends CakeRoute {
 			if ($Model === false) {
 				return false;
 			}
-			if (!$field) {
-				$field = $Model->displayField;
+			$field = $Model->displayField;
+			if (!empty($this->models[$modelName]['slugField'])) {
+				$field = $this->models[$modelName]['slugField'];
 			}
 			$slugs = $Model->find('all', array(
 				'fields' => array(
@@ -216,10 +248,10 @@ class SluggableRoute extends CakeRoute {
 	public function generateSlug($modelName, $id) {
 		$slug = false;
 
-		if (isset($this->options['models'])) {
-			if (array_key_exists($modelName, $this->options['models'])) {
-				$slugField = $this->options['models'][$modelName];
-			} elseif (array_search($modelName, $this->options['models']) !== false) {
+		if (!empty($this->models)) {
+			if (array_key_exists($modelName, $this->models)) {
+				$slugField = $this->models[$modelName];
+			} elseif (array_search($modelName, $this->models) !== false) {
 				$slugField = false;
 			}
 

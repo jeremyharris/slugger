@@ -116,7 +116,11 @@ class SluggableRouteTestCase extends CakeTestCase {
 	}
 
 	public function testGenerateSlug() {
-		$Sluggable = new SluggableRoute('/', array(), array('models' => array('RouteTest')));
+		$Sluggable = new SluggableRoute(null, null, null);
+		$Sluggable->options['models'] = array(
+			'RouteTest' => array()
+		);
+		$Sluggable->config();
 
 		$this->assertFalse($Sluggable->generateSlug('RouteTest', 100));
 
@@ -131,7 +135,11 @@ class SluggableRouteTestCase extends CakeTestCase {
 	}
 
 	public function testInvalidateCache() {
-		$Sluggable = new SluggableRoute('/', array(), array('models' => array('RouteTest')));
+		$Sluggable = new SluggableRoute(null, null, null);
+		$Sluggable->options['models'] = array(
+			'RouteTest' => array()
+		);
+		$Sluggable->config();
 
 		$Sluggable->getSlugs('RouteTest');
 		$varCache = $Sluggable->RouteTest_slugs;
@@ -220,9 +228,13 @@ class SluggableRouteTestCase extends CakeTestCase {
 	}
 
 	public function testGetSlugs() {
-		$SluggableRoute = new SluggableRoute(null, null, null);
+		$Sluggable = new SluggableRoute(null, null, null);
+		$Sluggable->options['models'] = array(
+			'RouteTest' => array()
+		);
+		$Sluggable->config();
 
-		$results = $SluggableRoute->getSlugs($this->RouteTest->alias);
+		$results = $Sluggable->getSlugs($this->RouteTest->alias);
 		$expected = array(
 			1 => 'a-page-title',
 			2 => 'another-title',
@@ -230,9 +242,17 @@ class SluggableRouteTestCase extends CakeTestCase {
 		);
 		$this->assertEquals($results, $expected);
 
-		unset($SluggableRoute->RouteTest_slugs);
+		unset($Sluggable->RouteTest_slugs);
 		Cache::clear(false, 'Slugger');
-		$results = $SluggableRoute->getSlugs($this->RouteTest->alias, 'name');
+
+		$Sluggable->options['models'] = array(
+			'RouteTest' => array(
+				'slugField' => 'name'
+			)
+		);
+		$Sluggable->config();
+
+		$results = $Sluggable->getSlugs($this->RouteTest->alias);
 		$expected = array(
 			1 => 'page-title',
 			2 => 'routing-is-fun',
@@ -434,7 +454,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 			array(),
 			array(
 				'routeClass' => 'SluggableRoute',
-				'models' => array('RouteTest' => 'name')
+				'models' => array('RouteTest' => array('slugField' => 'name'))
 			)
 		);
 
