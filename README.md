@@ -27,6 +27,34 @@ controller action.
 
 * CakePHP 2.0.x (check tags for older versions of CakePHP)
 
+## Installation
+
+### Manual
+
+* Download this: http://github.com/jeremyharris/slugger/zipball/master
+* Unzip that download.
+* Copy the resulting folder to app/Plugin/Slugger/
+
+### GIT Submodule
+
+In your app directory type:
+
+    git submodule add git://github.com/jeremyharris/slugger.git Plugin/Slugger
+    git submodule update --init
+
+### Composer
+
+Ensure `require` is present in `composer.json`. This will install the plugin into Plugin/Slugger:
+
+    {
+        "require": {
+            "jeremyharris/slugger": "dev-master"
+        }
+    }
+
+If you need the old version of slugger, make sure to replace "dev-master" with
+"1.0".
+
 ## Usage
 
     App::uses('SluggableRoute', 'Slugger.Routing/Route');
