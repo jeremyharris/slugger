@@ -1,6 +1,7 @@
 <?php
 
 App::uses('SluggableRoute', 'Slugger.Routing/Route');
+App::uses('SlugCache', 'Slugger.Cache');
 App::uses('Router', 'Routing');
 App::uses('Model', 'Model');
 
@@ -16,19 +17,24 @@ class SluggableRouteTestCase extends CakeTestCase {
 	var $fixtures = array('plugin.slugger.route_test', 'plugin.slugger.route_two_test');
 
 	public function startTest() {
+		$this->slugCache = SlugCache::config();
+		SlugCache::config('SluggerTest');
+		$this->disabled = Configure::read('Cache.disable');
 		Configure::write('Cache.disable', false);
 		Router::reload();
 		$this->RouteTest = ClassRegistry::init('RouteTest');
 	}
 
 	public function endTest() {
-		Cache::clear(false, 'Slugger');
+		SlugCache::clear();
+		SlugCache::config($this->slugCache);
 		Router::reload();
 		unset($this->RouteTest);
 	}
 
 	public function tearDown() {
-		Cache::clear(false, 'Slugger');
+		SlugCache::clear();
+		Configure::write('Cache.disable', $this->disabled);
 	}
 
 	public function testCustomSlugFunction() {
@@ -59,8 +65,8 @@ class SluggableRouteTestCase extends CakeTestCase {
 		);
 		$this->assertEquals($expected, $result);
 
-		$Sluggable = new SluggableRoute('/', array(), array('models' => array('RouteTest')));
-		$Sluggable->invalidateCache('RouteTest');
+		SlugCache::invalidate('RouteTest');
+
 		Router::reload();
 		Router::connect('/:controller/:action/*',
 			array(),
@@ -111,70 +117,6 @@ class SluggableRouteTestCase extends CakeTestCase {
 		));
 		$expected = '/route_tests/view/3-i-love-cakephp';
 		$this->assertEquals($expected, $results);
-	}
-
-	public function testGenerateSlug() {
-		$Sluggable = new SluggableRoute(null, null, null);
-		$Sluggable->options['models'] = array(
-			'RouteTest' => array()
-		);
-		$Sluggable->config();
-
-		$this->assertFalse($Sluggable->generateSlug('RouteTest', 100));
-
-		$results = $Sluggable->generateSlug('RouteTest', 1);
-		$this->assertEquals('a-page-title', $results);
-
-		$this->RouteTest->save(array('RouteTest' => array('title' => 'A page title')));
-		$results = $Sluggable->generateSlug('RouteTest', 1);
-		$this->assertEquals('1-a-page-title', $results);
-		$results = $Sluggable->generateSlug('RouteTest', 4);
-		$this->assertEquals('4-a-page-title', $results);
-	}
-
-	public function testInvalidateCache() {
-		$Sluggable = new SluggableRoute(null, null, null);
-		$Sluggable->options['models'] = array(
-			'RouteTest' => array()
-		);
-		$Sluggable->config();
-
-		$Sluggable->getSlugs('RouteTest');
-		$varCache = $Sluggable->RouteTest_slugs;
-		$this->assertInternalType('array', $varCache);
-		$cached = Cache::read('RouteTest_slugs', 'Slugger');
-		$this->assertInternalType('array', $cached);
-
-		$Sluggable->invalidateCache('RouteTest');
-		$this->assertFalse(isset($Sluggable->RouteTest_slugs));
-		$this->assertFalse(Cache::read('RouteTest_slugs', 'Slugger'));
-
-		$Sluggable->getSlugs('RouteTest');
-		$this->RouteTest->id = 1;
-		$this->RouteTest->saveField('title', 'A different name!');
-		$Sluggable->invalidateCache('RouteTest', 1);
-
-		$result = $Sluggable->RouteTest_slugs;
-		$expected = array(
-			1 => 'a-different-name',
-			2 => 'another-title',
-			3 => 'i-love-cakephp',
-		);
-		$this->assertEquals($expected, $result);
-
-		$result = Cache::read('RouteTest_slugs', 'Slugger');
-		$expected = array(
-			1 => 'a-different-name',
-			2 => 'another-title',
-			3 => 'i-love-cakephp',
-		);
-		$this->assertEquals($expected, $result);
-
-		$Sluggable->invalidateCache('RouteTest');
-		$Sluggable->invalidateCache('RouteTest', 2);
-
-		$this->assertFalse(isset($Sluggable->RouteTest_slugs));
-		$this->assertFalse(Cache::read('RouteTest_slugs', 'Slugger'));
 	}
 
 	public function testEmptyTable() {
@@ -240,8 +182,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 		);
 		$this->assertEquals($expected, $results);
 
-		unset($Sluggable->RouteTest_slugs);
-		Cache::clear(false, 'Slugger');
+		SlugCache::invalidate('RouteTest');
 
 		$Sluggable->options['models'] = array(
 			'RouteTest' => array(
@@ -743,5 +684,3 @@ class SluggableRouteTestCase extends CakeTestCase {
 	}
 
 }
-
-?>

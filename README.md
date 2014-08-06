@@ -135,26 +135,29 @@ arguments. In your controller, get the post id by checking:
 If you have defined a custom `<SLUG_PARAM>`, Slugger will replace whatever
 parameter type you chose and put the original route array back together.
 
-
 ## Caching
 
 Slugger caches by default. When you update records that the Sluggable route uses,
 you'll need to remove the cache. For example, updating a User's username
 
-    App::uses('SlugCache', 'Slugger.Lib');
+    App::uses('SlugCache', 'Slugger.Cache');
 
     $this->User->id = 3;
     $this->User->saveField('username', 'newUsername');
-    // invalidate entire model cache
+    // invalidate user slugs
     SlugCache::invalidate('User');
-    // or invalidate just the single user
-    SlugCache::invalidate('User', $this->User->id);
 
-Invalidating after saves and deletions is a good idea. You can also remove all
-of the cache for an entire model like so:
+To invalidate a single user you must regenerate the slug yourself and save it in
+the cache:
 
-    $Route = new SluggableRoute('/', array(), array('models' => array('User')));
-    $success = $Route->invalidateCache('User');
+    $this->User->id = 3;
+    $newSlug = 'my-new-slug';
+    $userSlugs = SlugCache::get('User');
+    $userSlugs[$this->User->id] = $newSlug;
+    SlugCache::set('User', $userSlugs);
+
+Slugger uses the 'Slugger' cache config to cache, so customize that configuration
+to change caching engines.
 
 ## Examples
 

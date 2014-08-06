@@ -13,6 +13,7 @@
  */
  App::uses('CakeRoute', 'Routing/Route');
  App::uses('Hash', 'Utility');
+ App::uses('SlugCache', 'Slugger.Cache');
 
 /**
  * Sluggable Route
@@ -48,13 +49,24 @@ class SluggableRoute extends CakeRoute {
 	protected $models;
 
 /**
+ * Sets up cache config and options
+ *
+ * @param string $template
+ * @param array $defaults
+ * @param array $options
+ */
+	public function __construct($template, $defaults = array(), $options = array()) {
+		parent::__construct($template, $defaults, $options);
+		$this->config();
+	}
+
+/**
  * Override the parsing function to find an id based on a slug
  *
  * @param string $url Url string
  * @return boolean
  */
     public function parse($url) {
-		$this->config();
 		$params = parent::parse($url);
 
 		if (empty($params)) {
@@ -94,7 +106,6 @@ class SluggableRoute extends CakeRoute {
  * @return boolean
  */
 	public function match($url) {
-		$this->config();
 		foreach ($this->models as $modelName => $options) {
 			list($paramType, $paramName) = $this->params($options);
 			$slugSet = $this->getSlugs($modelName);
@@ -188,18 +199,14 @@ class SluggableRoute extends CakeRoute {
 	}
 
 /**
- * Gets slugs from cache and store in variable for this request
+ * Gets slugs, checks cache first
  *
  * @param string $modelName The name of the model
- * @param string $field The field to pull
  * @return array Array of slugs
  */
 	public function getSlugs($modelName) {
-		$cacheConfig = $this->_initSluggerCache();
-		if (!isset($this->{$modelName.'_slugs'})) {
-			$this->{$modelName.'_slugs'} = Cache::read($modelName.'_slugs', $cacheConfig);
-		}
-		if (empty($this->{$modelName.'_slugs'})) {
+		$slugs = SlugCache::get($modelName);
+		if (empty($slugs)) {
 			$Model = ClassRegistry::init($modelName, true);
 			if ($Model === false) {
 				return false;
@@ -234,99 +241,10 @@ class SluggableRoute extends CakeRoute {
 				);
 				$listedSlugs[$fields[$Model->name][$Model->primaryKey]] = $this->slug($values);
 			}
-			Cache::write($modelName.'_slugs', $listedSlugs, $cacheConfig);
-			$this->{$modelName.'_slugs'} = $listedSlugs;
+			SlugCache::set($modelName, $listedSlugs);
 		}
 
-		return $this->{$modelName.'_slugs'};
+		return SlugCache::get($modelName);
 	}
 
-/**
- * Invalidate cached slugs for a given model or entry
- *
- * @param string $modelName Name of the model to invalidate cache for
- * @param string $id If of the only entry to update
- * @return boolean True if the value was succesfully deleted, false if it didn't exist or couldn't be removed
- */
-	public function invalidateCache($modelName, $id = null) {
-		$cacheConfig = $this->_initSluggerCache();
-
-		if (is_null($id)) {
-			$result = Cache::delete($modelName.'_slugs', $cacheConfig);
-			unset($this->{$modelName.'_slugs'});
-		} else {
-			$slugs = Cache::read($modelName.'_slugs', $cacheConfig);
-			if ($slugs === false) {
-				$result = false;
-			} else {
-				$slugs[$id] = $this->generateSlug($modelName, $id);
-				if ($slugs[$id] === false) {
-					unset($slugs[$id]);
-				}
-				if (isset($this->{$modelName.'_slugs'}) && $slugs[$id] !== false) {
-					$this->{$modelName.'_slugs'}[$id] = $slugs[$id];
-				}
-				$result = Cache::write($modelName.'_slugs', $slugs, $cacheConfig);
-			}
-		}
-
-		return $result;
-	}
-
-/**
- * Generates a slug for a given model and id from the database
- *
- * @param string $modelName The name of the model
- * @param string $id Id of the entry to generate a slug for
- * @return mixed False if the config is not found for this model or the entry
- *	does not exist. The generated slug otherwise
- */
-	public function generateSlug($modelName, $id) {
-		$slug = false;
-
-		if (!empty($this->models)) {
-			if (array_key_exists($modelName, $this->models)) {
-				$slugField = $this->models[$modelName];
-			} elseif (array_search($modelName, $this->models) !== false) {
-				$slugField = false;
-			}
-
-			if (isset($slugField)) {
-				$Model = ClassRegistry::init($modelName);
-				if ($Model !== false) {
-					if (!$slugField) {
-						$slugField = $Model->displayField;
-					}
-					$text = $Model->field($slugField, array(
-						$Model->name.'.'.$Model->primaryKey => $id
-					));
-					if ($text !== false) {
-						$count = $Model->find('count', array(
-							'conditions' => array($Model->name.'.'.$slugField => $text)
-						));
-						$values = array('_field' => $text, '_count' => $count, '_pk' => $id);
-						$slug = $this->slug($values);
-					}
-				}
-			}
-		}
-
-		return $slug;
-	}
-
-/**
- * Sets up cache config and returns config name
- *
- * @return string Cache config name
- */
-	protected function _initSluggerCache() {
-		Cache::config('Slugger', array(
-			'engine' => 'File',
-			'duration' => '+1 days',
-			'prefix' => 'slugger_'
-		));
-		return 'Slugger';
-	}
 }
-
-?>
