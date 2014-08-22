@@ -16,7 +16,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 
 	var $fixtures = array('plugin.slugger.route_test', 'plugin.slugger.route_two_test');
 
-	public function startTest() {
+	public function startTest($method) {
 		$this->slugCache = SlugCache::config();
 		SlugCache::config('SluggerTest');
 		$this->disabled = Configure::read('Cache.disable');
@@ -25,7 +25,7 @@ class SluggableRouteTestCase extends CakeTestCase {
 		$this->RouteTest = ClassRegistry::init('RouteTest');
 	}
 
-	public function endTest() {
+	public function endTest($method) {
 		SlugCache::clear();
 		SlugCache::config($this->slugCache);
 		Router::reload();
