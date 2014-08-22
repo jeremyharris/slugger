@@ -1,3 +1,6 @@
+[![build
+status](https://travis-ci.org/jeremyharris/slugger.svg?branch=master)](https://travis-ci.org/jeremyharris/slugger)
+
 # Slugger
 
 > BREAKING CHANGE
